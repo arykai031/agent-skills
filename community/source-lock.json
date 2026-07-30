@@ -1,0 +1,17 @@
+{
+  "description": "社区技能来源锁定 — 记录安装来源、版本、时间",
+  "sources": {
+    "@steipete/github": {
+      "source": "skillhub",
+      "version": "1.0.0",
+      "installed_at": "2026-07-29",
+      "install_cmd": "skillhub install github --namespace steipete"
+    },
+    "@steipete/obsidian": {
+      "source": "skillhub",
+      "version": "1.0.0",
+      "installed_at": "2026-07-30",
+      "install_cmd": "skillhub install obsidian --namespace steipete"
+    }
+  }
+}
