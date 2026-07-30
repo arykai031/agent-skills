@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-07-30T07:22:58Z",
+  "updated": "2026-07-30T07:39:26Z",
   "skills": [
     {
       "name": "dev-doc-to-test-prd",
