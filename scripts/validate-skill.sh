@@ -56,7 +56,7 @@ else
 
   echo ""
   echo "=== 校验 community/ ==="
-  for dir in "$REPO_DIR/community"/*/*/; do
+  for dir in "$REPO_DIR/community"/*/; do
     [ -d "$dir" ] || continue
     validate_one "$dir" || errors=$((errors + 1))
   done

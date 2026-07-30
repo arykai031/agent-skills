@@ -1,6 +1,73 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "",
-  "skills": []
+  "updated": "2026-07-30T07:22:58Z",
+  "skills": [
+    {
+      "name": "dev-doc-to-test-prd",
+      "namespace": "curated",
+      "description": "将开发视角的PRD文档翻译为测试视角的需求确认文档。 当用户提到\"转测试文档\"、\"PRD转测试需求\"、\"需求确认文档\"、\"生成测试规格\"、\"开发文档翻译\"等意图时触发。 不适用于直接编写测试用例、测试计划或测试报告。",
+      "path": "curated/dev-doc-to-test-prd/"
+    },
+    {
+      "name": "tc-generator-ary",
+      "namespace": "curated",
+      "description": "基于需求文档（PRD/Spec）或功能描述，自动生成面向功能测试的结构化测试用例（Markdown格式）。 当用户提到以下任何意图时，务必使用本技能，即使没有明确说出\"测试用例\"字样： - \"为这个功能生成测试用例\" / \"帮我写一份测试用例\" - \"生成测试清单\" / \"帮我做一下测试分析\" - PRD/Spec 完成后需要落地验收标准 - 准备功能测试前需要系统化测试方案 - 提到了具体的功能模块，询问\"怎么测\" / \"有什么测试点\" - 提供了接口文档或流程图，要求生成用例 本技能与 prd-splitter、tc-pipeline 配合使用效果最佳。",
+      "path": "curated/tc-generator-ary/"
+    },
+    {
+      "name": "tc-md-to-excel",
+      "namespace": "curated",
+      "description": "将 Markdown 格式的测试用例批量转换为格式化的 Excel 文件。 当用户需要将 Markdown 测试用例转换为 Excel、批量生成测试用例编号、或处理标准格式的测试用例文件时，应触发此技能。 agent_created: true",
+      "path": "curated/tc-md-to-excel/"
+    },
+    {
+      "name": "tc-pipeline",
+      "namespace": "curated",
+      "description": "测试用例全流程调度器。从原始设计文档/PRD 出发，自动调度子技能完成：翻译→拆分→确认→同步→生成用例。 当用户提到\"生成测试用例\"且输入是设计文档或未拆分的 PRD 时触发。 不适用于已有 Spec 且只需生成用例的场景（直接用 TC-generator-ary）。 related_skills: - dev-doc-to-test-prd: 阶段零，翻译开发设计文档为结构化 PRD - tc-prd-splitter: 阶段一，拆分 PRD 为 PRD精简 + 多份 Spec - tc-generator-ary: 阶段二，基于 Spec 生成测试用例 - tc-md-to-excel:",
+      "path": "curated/tc-pipeline/"
+    },
+    {
+      "name": "tc-prd-splitter",
+      "namespace": "curated",
+      "description": "拆分prd",
+      "path": "curated/tc-prd-splitter/"
+    },
+    {
+      "name": "agent-browser",
+      "namespace": "community",
+      "description": "A fast Rust-based headless browser automation CLI with Node.js fallback that enables AI agents to navigate, click, type, and snapshot pages via structured commands.",
+      "path": "community/agent-browser/"
+    },
+    {
+      "name": "github",
+      "namespace": "community",
+      "description": "GitHub集成工具，支持Issues管理、PR操作、CI运行监控、API查询。适用于代码审查、项目跟踪、自动化工作流。",
+      "path": "community/github/"
+    },
+    {
+      "name": "ima-skill",
+      "namespace": "community",
+      "description": "统一的 IMA OpenAPI 技能，支持笔记管理和知识库操作。 当用户提到知识库、资料库、笔记、备忘录、记事，或者想要上传文件、添加网页到知识库、 搜索知识库内容、搜索/浏览/创建/编辑笔记时，使用此 skill。 即使用户没有明确说\"知识库\"或\"笔记\"，只要意图涉及文件上传到知识库、网页收藏、 知识搜索、个人文档存取（如\"帮我记一下\"、\"搜一下知识库里有没有XX\"），也应触发此 skill。 homepage: https://ima.qq.com metadata: openclaw: emoji: '🔧' requires: { env: ['IMA_OPENAPI_CLIENTID'",
+      "path": "community/ima-skill/"
+    },
+    {
+      "name": "n8n-workflow-automation",
+      "namespace": "community",
+      "description": "Designs and outputs n8n workflow JSON with robust triggers, idempotency, error handling, logging, retries, and human-in-the-loop review queues. Use when you need an auditable automation that won’t silently fail.",
+      "path": "community/n8n-workflow-automation/"
+    },
+    {
+      "name": "obsidian",
+      "namespace": "community",
+      "description": "Work with Obsidian vaults (plain Markdown notes) and automate via obsidian-cli.",
+      "path": "community/obsidian/"
+    },
+    {
+      "name": "runesleo-systematic-debugging",
+      "namespace": "community",
+      "description": "Four-phase debugging framework that ensures root cause investigation before attempting fixes. Never jump to solutions.",
+      "path": "community/runesleo-systematic-debugging/"
+    }
+  ]
 }

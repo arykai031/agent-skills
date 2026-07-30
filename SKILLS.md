@@ -1,24 +1,28 @@
 # Skills 清单
 
-> 仓库内所有技能的快速索引。`✅` = 稳定可用，`🔄` = 开发中，`📦` = 社区来源
+> 仓库内所有技能的快速索引。`🏆` = 自研，`📦` = 社区来源
 
 ---
 
 ## 🏆 精选技能 (curated/)
 
-_当前为空，等待你的第一个自研技能加入。_
-
 | 技能 | 说明 | 状态 |
 |------|------|------|
-| _等你来写_ | — | — |
+| dev-doc-to-test-prd | 将开发视角的 PRD 翻译为测试视角的需求确认文档 | ✅ |
+| tc-generator-ary | 基于 PRD/Spec 自动生成结构化测试用例（Markdown） | ✅ |
+| tc-md-to-excel | 将 Markdown 测试用例批量转换为格式化 Excel | ✅ |
+| tc-pipeline | 测试用例全流程调度器：翻译→拆分→确认→同步→生成 | ✅ |
+| tc-prd-splitter | 拆分 PRD 为结构化文档 | ✅ |
 
 ---
 
 ## 📦 社区技能 (community/)
 
-_从 SkillHub 安装的社区技能快照。_
-
-| 技能 | 命名空间 | 版本 | 说明 |
-|------|---------|:----:|------|
-| github | @steipete | 1.0.0 | GitHub 操作（Issue/PR/CI） |
-| obsidian | @steipete | 1.0.0 | Obsidian vault 自动化 |
+| 技能 | 命名空间 | 说明 |
+|------|---------|------|
+| agent-browser | community | Rust 浏览器自动化 CLI |
+| github | @steipete | GitHub 集成（Issue/PR/CI） |
+| ima-skill | community | — |
+| n8n-workflow-automation | community | n8n 工作流自动化设计 |
+| obsidian | @steipete | Obsidian vault 自动化 |
+| runesleo-systematic-debugging | community | 四阶段系统化调试框架 |
