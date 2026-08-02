@@ -1,8 +1,14 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-08-02T06:37:04Z",
+  "updated": "2026-08-02T07:02:28Z",
   "skills": [
+    {
+      "name": "a-work-collection",
+      "namespace": "curated",
+      "description": "建立可复用的收口目录骨架（a_work）——交付物唯一出口。含 AGENTS.md 行为规范（回写策略/索引格式/命名规范/禁止事项）、INDEX.md 双链索引、目录用途划分。当用户提到\"收口目录\"\"交付物目录\"\"outputs 重构\"\"目录骨架\"\"目录管理方案\"时使用。",
+      "path": "curated/a-work-collection/"
+    },
     {
       "name": "bw-sync",
       "namespace": "curated",
