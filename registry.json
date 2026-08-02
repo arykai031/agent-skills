@@ -1,8 +1,14 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-07-30T07:39:26Z",
+  "updated": "2026-08-02T04:48:50Z",
   "skills": [
+    {
+      "name": "bw-sync",
+      "namespace": "curated",
+      "description": "Use this skill when the user needs to sync secrets from Bitwarden Secrets Manager to local targets — agents (QwenPaw, Hermes, Codex CLI), .env files, shell environments, or CI pipelines. Triggers: \"bw-sync\", \"bitwarden sync\", \"sync secrets\", \"密钥同步\", \"bitwarden 密钥\", \"同步密码到本地\".",
+      "path": "curated/bw-sync/"
+    },
     {
       "name": "dev-doc-to-test-prd",
       "namespace": "curated",

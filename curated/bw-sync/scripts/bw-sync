@@ -1,0 +1,400 @@
+#!/usr/bin/env python3
+"""
+bw-sync — 从 Bitwarden Secrets Manager 同步密钥到目标系统
+
+通用同步工具，支持多种输出目标和配置方式，可复用于
+任何 agent（QwenPaw、Hermes、Codex CLI 等）或项目。
+
+依赖: bws CLI (Bitwarden Secrets Manager)
+       pip install pyyaml (可选，用于 YAML 配置)
+
+用法:
+  # 直接使用（从 ~/.bw/env 读取 token）
+  bw-sync --project-id <pid> --config bw-config.yaml
+
+  # 指定 token
+  BWS_ACCESS_TOKEN="0.xxx" bw-sync --org-id <oid> --mode stdout
+
+  # 查看帮助
+  bw-sync --help
+"""
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+# ============================================================
+# 常量
+# ============================================================
+VERSION = "2.0.0"
+DEFAULT_BWS_PATH = shutil.which("bws") or "/root/.local/bin/bws"
+DEFAULT_TOKEN_FILE = os.path.expanduser("~/.bw/env")
+
+# 输出模式
+MODES = {
+    "env_set":   "调用目标命令写入环境变量（如 qwenpaw env set <key> <value>）",
+    "env_file":  "写入 .env 格式文件（可追加或覆盖）",
+    "stdout":    "输出 JSON 到标准输出（便于管道处理）",
+    "shell":     "输出 export 语句（可直接 source 或 eval）",
+}
+
+
+# ============================================================
+# Token 加载
+# ============================================================
+def load_token(token_source, env_var, file_path):
+    """按策略加载 BWS_ACCESS_TOKEN"""
+    if token_source == "env":
+        token = os.environ.get(env_var)
+        if token:
+            return token
+        sys.exit(f"[ERROR] 环境变量 {env_var} 未设置")
+
+    elif token_source == "file":
+        path = os.path.expanduser(file_path)
+        if not os.path.isfile(path):
+            sys.exit(f"[ERROR] Token 文件不存在: {path}")
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if env_var in line and "=" in line:
+                    value = line.split("=", 1)[1].strip('"').strip("'")
+                    return value
+        sys.exit(f"[ERROR] 在 {path} 中未找到 {env_var}")
+
+    # token_source == "arg" → 通过 --token 参数传入
+    return None  # 由调用方注入
+
+
+# ============================================================
+# bws 拉取
+# ============================================================
+def fetch_secrets(bws_path, project_id, org_id, token):
+    """从 Bitwarden 拉取密钥列表，返回 [{key, value, id, ...}]"""
+    if not project_id and not org_id:
+        sys.exit("[ERROR] 必须指定 --project-id 或 --org-id")
+
+    if project_id:
+        cmd = [bws_path, "secret", "list", project_id]
+    else:
+        cmd = [bws_path, "secret", "list", "--organization-id", org_id]
+
+    env = {**os.environ, "BWS_ACCESS_TOKEN": token}
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+
+    if result.returncode != 0:
+        msg = result.stderr.strip() or f"exit code {result.returncode}"
+        sys.exit(f"[ERROR] bws 调用失败: {msg}")
+
+    if not result.stdout.strip():
+        return []
+
+    return json.loads(result.stdout)
+
+
+# ============================================================
+# 输出器
+# ============================================================
+def output_env_set(env_map, target_command, dry_run):
+    """通过目标命令写入环境变量"""
+    import shlex
+    success, failed = 0, 0
+    for key, value in env_map.items():
+        cmd = shlex.split(target_command) + [key, value]
+        if dry_run:
+            print(f"[DRY-RUN] $ {' '.join(cmd)}")
+            success += 1
+            continue
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        if r.returncode == 0:
+            print(f"[OK]   {key}")
+            success += 1
+        else:
+            print(f"[ERR]  {key}: {r.stderr.strip()}")
+            failed += 1
+    return success, failed
+
+
+def output_env_file(env_map, file_path, append, dry_run):
+    """写入 .env 格式文件"""
+    path = os.path.expanduser(file_path)
+    mode = "a" if append else "w"
+
+    lines = []
+    for key in sorted(env_map.keys()):
+        val = env_map[key]
+        lines.append(f'{key}="{val}"')
+    content = "\n".join(lines) + "\n"
+
+    if dry_run:
+        path_display = f"{path} ({'追加' if append else '覆盖'})"
+        print(f"[DRY-RUN] 写入 {len(lines)} 条密钥到 {path_display}")
+        for line in lines:
+            print(f"  {line}")
+        return len(lines), 0
+
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, mode) as f:
+        f.write(content)
+
+    print(f"[OK]   {len(lines)} 条密钥写入 {path} ({'追加' if append else '覆盖'})")
+    return len(lines), 0
+
+
+def output_stdout(env_map, dry_run):
+    """输出 JSON 到 stdout"""
+    result = json.dumps(env_map, indent=2, ensure_ascii=False)
+    if dry_run:
+        print(f"[DRY-RUN] 将输出 JSON ({len(env_map)} 条密钥):")
+        print(result)
+        return len(env_map), 0
+    print(result)
+    return len(env_map), 0
+
+
+def output_shell(env_map, dry_run):
+    """输出 export 语句（可 source/eval）"""
+    if dry_run:
+        print(f"[DRY-RUN] 将输出 export 语句 ({len(env_map)} 条):")
+    for key in sorted(env_map.keys()):
+        val = env_map[key].replace("'", "'\\''")
+        print(f"export {key}='{val}'")
+    print(f"\n# 使用方式: eval \"$(bw-sync --mode shell)\"")
+    return len(env_map), 0
+
+
+# ============================================================
+# 配置加载
+# ============================================================
+def load_config(config_path):
+    """加载 YAML 或 JSON 配置文件"""
+    path = os.path.expanduser(config_path)
+    if not os.path.isfile(path):
+        sys.exit(f"[ERROR] 配置文件不存在: {path}")
+
+    ext = os.path.splitext(path)[1].lower()
+
+    if ext in (".yaml", ".yml"):
+        try:
+            import yaml
+        except ImportError:
+            sys.exit("[ERROR] 解析 YAML 需要 PyYAML: pip install pyyaml")
+        with open(path) as f:
+            return yaml.safe_load(f)
+
+    elif ext == ".json":
+        with open(path) as f:
+            return json.load(f)
+
+    else:
+        sys.exit(f"[ERROR] 不支持的配置格式: {ext}（支持 .yaml .yml .json）")
+
+
+def merge_config(args, config):
+    """命令行参数覆盖配置文件"""
+    cfg = config or {}
+
+    # Bitwarden
+    bw = cfg.get("bitwarden", {})
+    project_id = args.project_id or bw.get("project_id", "")
+    org_id = args.org_id or bw.get("organization_id", "")
+    bws_path = args.bws_path or bw.get("bws_path", DEFAULT_BWS_PATH)
+
+    token_cfg = bw.get("token", {})
+    token_source = args.token_source or token_cfg.get("source", "file")
+    token_env_var = token_cfg.get("env_var", "BWS_ACCESS_TOKEN")
+    token_file_path = token_cfg.get("file_path", DEFAULT_TOKEN_FILE)
+
+    # 输出
+    out = cfg.get("output", {})
+    mode = args.mode or out.get("mode", "env_file")
+    target_command = out.get("target_command", "qwenpaw env set")
+    env_file_path = out.get("env_file_path", ".env")
+    env_file_append = out.get("env_file_append", False)
+    only_keys = out.get("only_keys", [])
+    exclude_keys = out.get("exclude_keys", [])
+
+    # 日志
+    quiet = args.quiet or False
+
+    # 密钥映射
+    secrets_cfg = cfg.get("secrets", cfg.get("secret_map", {}))
+    secret_map = args.map or secrets_cfg.get("MAP", secrets_cfg)
+    pass_through = secrets_cfg.get("pass_through", False)
+
+    return {
+        "project_id": project_id,
+        "org_id": org_id,
+        "bws_path": bws_path,
+        "token_source": token_source,
+        "token_env_var": token_env_var,
+        "token_file_path": token_file_path,
+        "mode": mode,
+        "target_command": target_command,
+        "env_file_path": env_file_path,
+        "env_file_append": env_file_append,
+        "only_keys": only_keys,
+        "exclude_keys": exclude_keys,
+        "secret_map": secret_map,
+        "pass_through": pass_through,
+        "quiet": quiet,
+    }
+
+
+# ============================================================
+# 主逻辑
+# ============================================================
+def main():
+    parser = argparse.ArgumentParser(
+        description="bw-sync v%s — 从 Bitwarden 同步密钥到目标系统" % VERSION,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+配置文件示例 (bw-sync.yaml):
+---
+bitwarden:
+  project_id: "206d7fbd-..."
+  bws_path: "/usr/local/bin/bws"
+  token:
+    source: "file"
+    file_path: "~/.bw/env"
+
+output:
+  mode: "env_file"
+  env_file_path: ".env"
+  env_file_append: false
+
+secrets:
+  pass_through: true    # Bitwarden key 直接作为环境变量名
+  MAP:                  # 或手动映射: 环境变量名 → Bitwarden key
+    GITHUB_TOKEN: GITHUB_TOKEN
+    DEEPSEEK_API_KEY: DEEPSEEK_API_KEY
+""",
+    )
+    parser.add_argument("--project-id", help="Bitwarden Project ID")
+    parser.add_argument("--org-id", help="Bitwarden Organization ID")
+    parser.add_argument("--bws-path", help="bws CLI 路径（默认自动查找）")
+    parser.add_argument("--token-source", choices=["file", "env", "arg"],
+                        help="Token 来源")
+    parser.add_argument("--token", help="直接传入 BWS_ACCESS_TOKEN")
+    parser.add_argument("--config", "-c", help="YAML/JSON 配置文件路径")
+    parser.add_argument("--mode", choices=MODES.keys(),
+                        help="输出模式: %s" % ", ".join(MODES.keys()))
+    parser.add_argument("--map", nargs="+", action="append",
+                        metavar="ENV_VAR=BW_KEY",
+                        help="密钥映射（可多次使用），如 GITHUB_TOKEN=GITHUB_TOKEN")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="仅预览，不实际写入")
+    parser.add_argument("--quiet", "-q", action="store_true",
+                        help="安静模式，只输出错误")
+    parser.add_argument("--version", action="version",
+                        version="bw-sync v%s" % VERSION)
+
+    args = parser.parse_args()
+
+    # ---------- 加载配置 ----------
+    config = None
+    if args.config:
+        config = load_config(args.config)
+
+    # 合并配置和命令行参数
+    opt = merge_config(args, config)
+
+    # 处理 --map 参数: [["A=B"], ["C=D"]] → {"A": "B", "C": "D"}
+    cli_map = {}
+    if args.map:
+        for group in args.map:
+            for item in group:
+                if "=" in item:
+                    k, v = item.split("=", 1)
+                    cli_map[k.strip()] = v.strip()
+
+    secret_map = cli_map or opt["secret_map"]
+
+    # ---------- 过滤 ----------
+    only = opt["only_keys"]
+    exclude = opt["exclude_keys"]
+
+    # ---------- Token ----------
+    if args.token:
+        token = args.token
+    elif opt["token_source"] == "env":
+        token = load_token("env", opt["token_env_var"], "")
+    else:
+        token = load_token(opt["token_source"], opt["token_env_var"],
+                           opt["token_file_path"])
+
+    # ---------- 拉取 Bitwarden ----------
+    if not opt["quiet"]:
+        print("[INFO] 从 Bitwarden 拉取密钥...", file=sys.stderr)
+
+    secrets = fetch_secrets(opt["bws_path"], opt["project_id"],
+                            opt["org_id"], token)
+
+    if not secrets:
+        print("[WARN] Bitwarden 返回空结果，无密钥可同步", file=sys.stderr)
+        sys.exit(0)
+
+    # 构建 key → value 查找表
+    bw_map = {s["key"]: s.get("value", "") for s in secrets}
+
+    # ---------- 构建输出映射 ----------
+    env_map = {}
+
+    if opt["pass_through"]:
+        # 透传：Bitwarden 中所有密钥都同步，key 作为环境变量名
+        for key, value in bw_map.items():
+            if not value:
+                continue
+            if only and key not in only:
+                continue
+            if key in exclude:
+                continue
+            env_map[key] = value
+    else:
+        # 按映射表同步
+        for env_var, bw_key in secret_map.items():
+            if only and env_var not in only and bw_key not in only:
+                continue
+            if env_var in exclude or bw_key in exclude:
+                continue
+            value = bw_map.get(bw_key)
+            if not value:
+                if not opt["quiet"]:
+                    print(f"[SKIP] Bitwarden 中未找到 {bw_key}，跳过",
+                          file=sys.stderr)
+                continue
+            env_map[env_var] = value
+
+    if not env_map:
+        print("[WARN] 无可同步的密钥（映射表中没有匹配项）", file=sys.stderr)
+        sys.exit(0)
+
+    # ---------- 输出 ----------
+    mode = opt["mode"]
+
+    if mode == "env_set":
+        success, failed = output_env_set(env_map, opt["target_command"], args.dry_run)
+    elif mode == "env_file":
+        success, failed = output_env_file(env_map, opt["env_file_path"],
+                                          opt["env_file_append"], args.dry_run)
+    elif mode == "stdout":
+        success, failed = output_stdout(env_map, args.dry_run)
+    elif mode == "shell":
+        success, failed = output_shell(env_map, args.dry_run)
+    else:
+        sys.exit(f"[ERROR] 不支持的输出模式: {mode}")
+
+    # ---------- 汇总 ----------
+    total = len(env_map)
+    if not opt["quiet"]:
+        print(f"\n[DONE] 总计 {total} 条密钥，成功 {success}，失败 {failed}",
+              file=sys.stderr)
+        if failed > 0:
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -8,6 +8,7 @@
 
 | 技能 | 说明 | 状态 |
 |------|------|------|
+| bw-sync | Bitwarden 密钥统一同步（一键安装/配置/定时，支持多目标） | ✅ |
 | dev-doc-to-test-prd | 将开发视角的 PRD 翻译为测试视角的需求确认文档 | ✅ |
 | tc-generator-ary | 基于 PRD/Spec 自动生成结构化测试用例（Markdown） | ✅ |
 | tc-md-to-excel | 将 Markdown 测试用例批量转换为格式化 Excel | ✅ |
