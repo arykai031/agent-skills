@@ -43,15 +43,48 @@
 
 ### 前置条件
 
-| 依赖 | 说明 |
-|------|------|
-| **Bitwarden 账号** | 注册 [bitwarden.com](https://bitwarden.com) |
-| **Secrets Manager** | 激活免费 Plan（3 个 Machine Account，不限 Secret 数） |
-| **bws CLI** | 安装 `curl -fsSL https://bws.bitwarden.com/install | sh` |
-| **Python 3** | 脚本基于 Python 3.6+ |
-| **PyYAML**（可选） | 使用 YAML 配置时需要：`pip install pyyaml` |
+| 依赖 | 说明 | 谁准备 |
+|------|------|--------|
+| **Bitwarden 账号** | 注册 [bitwarden.com](https://bitwarden.com) | 👤 用户 |
+| **Secrets Manager** | 激活免费 Plan（3 个 Machine Account，不限 Secret 数） | 👤 用户 |
+| **bws CLI** | `install.sh` 自动安装；也可手动 `curl -fsSL https://bws.bitwarden.com/install | sh` | 🤖 自动 |
+| **Python 3** | 脚本基于 Python 3.6+ | 🤖 自动检查 |
+| **PyYAML**（可选） | 使用 YAML 配置时需要：`pip install pyyaml` | 🤖 自动检查 |
 
-### 安装
+### 0. 首次使用引导（Bitwarden 侧骨架）
+
+**在使用前，需要确认 Bitwarden Secrets Manager 侧已就绪**。以下操作在 Bitwarden Web Vault 网页端完成：
+
+1. **创建 Machine Account**（只读）
+   - 路径: Secrets Manager → Machine Accounts → 创建
+   - 权限: **Read**（只读，bw-sync 只拉不写）
+   - 名称: 建议按用途命名，如 `my-app-sync`
+
+2. **生成并保存 Access Token**（**只出示一次！**）
+   - 生成后立即复制保存，丢失需重新生成
+   - 写入 Token 文件（install.sh 自动处理，权限 600）
+
+3. **创建密钥**（要同步的内容）
+   - 路径: Secrets Manager → Secrets → 创建
+   - 创建你需要的所有密钥（key = 密钥名，value = 密钥值）
+
+4. **创建项目 (Project) 并将密钥分配进去**
+   - 路径: Secrets Manager → Projects → 创建
+   - 记下 **Project ID**（项目页 URL 中可找到，格式为 UUID）
+   - 把 Machine Account 授权到该项目（Read 权限）
+
+> 💡 **缺什么就问用户要什么**：如果用户没有 Bitwarden 账号/项目/token，引导按上述 4 步完成后再继续。token 是网页端生成的（只显示一次），无法由脚本代劳。
+
+### 一键安装（推荐）
+
+```bash
+cd skills/bw-sync/scripts
+bash install.sh --token "<BWS_ACCESS_TOKEN>"
+```
+
+install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置模板 `/etc/bw-sync/config.yaml`。
+
+### 手动安装（可选，不用 install.sh 时）
 
 ```bash
 # 1. 安装 bws CLI
@@ -66,7 +99,7 @@ chmod +x /usr/local/bin/bw-sync
 bw-sync --version
 ```
 
-### 初始化
+### 初始化（手动方式，install.sh 已自动完成）
 
 ```bash
 # 1. 在 Bitwarden Web Vault 中创建 Machine Account
