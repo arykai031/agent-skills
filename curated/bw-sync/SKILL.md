@@ -60,12 +60,13 @@ command -v bws 2>/dev/null || ls ~/.local/bin/bws 2>/dev/null || echo "bws CLI �
 
 ```bash
 cd skills/bw-sync/scripts
-bash install.sh --token "<BWS_ACCESS_TOKEN>"
+bash install.sh --token "<BWS_ACCESS_TOKEN>" --deploy-dir "$HOME/a_work"
 ```
 
-install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置模板 `/etc/bw-sync/config.yaml` → **部署到收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`）。
+install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置文件。**安装目标是用户级收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`），不装系统级。
 
-- 收口目录（a_work/Yon-w 等）自动探测：`$HOME/a_work` → `$(pwd)/Yon-w` → `$(pwd)/a_work`，也可显式指定：`bash install.sh --deploy-dir "$HOME/a_work"`
+- 收口目录（通用 `a_work` 概念）自动探测：`$HOME/a_work` → `$(pwd)/a_work`，也可显式指定：`bash install.sh --deploy-dir "$HOME/a_work"`
+- 未探测到收口目录时，兜底安装到标准用户级：`$HOME/.local/bin` + `$HOME/.config/bw-sync`
 - 若用户已提供 token：`--token` 传入
 - 若用户还没拿到 token：先运行 `bash install.sh`（跳过 token），**明确告诉用户下一步去 Bitwarden 控制台生成 token，拿到后补跑** `bash install.sh --token "<新token>"`
 
@@ -73,7 +74,7 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 
 ### 第 2 步：生成配置文件
 
-向用户确认以下信息后，编辑配置（收口目录 `<a_work>/configs/bw-sync.yaml`，与 `/etc/bw-sync/config.yaml` 同步生效）：
+向用户确认以下信息后，编辑配置 `<a_work>/configs/bw-sync.yaml`：
 
 | 配置项 | 说明 | 需要用户提供 |
 |--------|------|-------------|

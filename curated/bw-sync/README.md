@@ -82,9 +82,10 @@ cd skills/bw-sync/scripts
 bash install.sh --token "<BWS_ACCESS_TOKEN>"
 ```
 
-install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置模板 `/etc/bw-sync/config.yaml` → **部署到收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`）。
+install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置文件。**安装目标是用户级收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`），不装系统级。
 
-- 收口目录自动探测：`$HOME/a_work` → `$(pwd)/Yon-w` → `$(pwd)/a_work`，也可显式指定 `--deploy-dir`
+- 收口目录（通用 `a_work` 概念）自动探测：`$HOME/a_work` → `$(pwd)/a_work`，也可显式指定 `--deploy-dir`
+- 未探测到收口目录时，兜底安装到标准用户级：`$HOME/.local/bin` + `$HOME/.config/bw-sync`
 
 ### 手动安装（可选，不用 install.sh 时）
 
@@ -92,13 +93,13 @@ install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 toke
 # 1. 安装 bws CLI
 curl -fsSL https://bws.bitwarden.com/install | sh
 
-# 2. 下载同步脚本
-#    从仓库或本方案目录拷贝到 /usr/local/bin/
-cp bw-sync /usr/local/bin/bw-sync
-chmod +x /usr/local/bin/bw-sync
+# 2. 下载同步脚本到用户级目录（a_work 收口目录或 ~/.local/bin）
+mkdir -p "$HOME/a_work/scripts"
+cp bw-sync "$HOME/a_work/scripts/bw-sync"
+chmod +x "$HOME/a_work/scripts/bw-sync"
 
 # 3. 验证
-bw-sync --version
+"$HOME/a_work/scripts/bw-sync" --version
 ```
 
 ### 初始化（手动方式，install.sh 已自动完成）
@@ -136,7 +137,7 @@ bitwarden:
   project_id: "206d7fbd-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   # 或使用 Organization ID:
   # organization_id: "962510f9-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  bws_path: "/usr/local/bin/bws"
+  bws_path: "bws"
   token:
     source: "file"
     file_path: "~/.bw/env"
@@ -244,13 +245,13 @@ Bitwarden 中的 **Secret Key 直接作为环境变量名**，同步所有密钥
 
 ## 触发方式
 
-> 📁 **收口目录工作链**：install.sh 已部署收口目录副本（脚本 `<a_work>/scripts/bw-sync` + 配置 `<a_work>/configs/bw-sync.yaml`）时，**日常同步/定时任务优先使用收口目录路径**；未部署时回退到系统级路径（`/usr/local/bin/bw-sync` + `/etc/bw-sync/config.yaml`）。以下示例均可用 `<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml` 替换。
+> 📁 **用户级收口目录工作链**：install.sh 安装目标即用户级收口目录（脚本 `<a_work>/scripts/bw-sync` + 配置 `<a_work>/configs/bw-sync.yaml`）。**日常同步/定时任务统一使用收口目录路径**；未部署收口目录时使用兜底用户级路径（`$HOME/.local/bin/bw-sync` + `$HOME/.config/bw-sync/bw-sync.yaml`）。以下示例均可用 `<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml` 替换。
 
 ### 方式 A：Supervisor Wrapper（容器环境，当前方案）
 
 ```ini
 [program:sync-bw]
-command=bw-sync --config /etc/bw-sync/config.yaml -q
+command=<a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
 autostart=true
 autorestart=false
 startsecs=0
@@ -266,7 +267,7 @@ priority=100          # 大于 sync-bw 的 priority，保证后启动
 或合并为一条命令：
 
 ```
-command=/bin/sh -c "bw-sync --config /etc/bw-sync/config.yaml -q && exec my-app"
+command=/bin/sh -c "<a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q && exec my-app"
 ```
 
 ### 方式 B：系统 Cron（服务器环境）
@@ -274,11 +275,11 @@ command=/bin/sh -c "bw-sync --config /etc/bw-sync/config.yaml -q && exec my-app"
 ```bash
 # crontab -e
 # 每 5 分钟同步一次（比默认 30 分钟更及时）
-*/5 * * * * /usr/local/bin/bw-sync --config /etc/bw-sync/config.yaml -q
+*/5 * * * * <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
 
 # 或系统级 cron（root）
 cat > /etc/cron.d/bw-sync << 'EOF'
-*/5 * * * * root /usr/local/bin/bw-sync --config /etc/bw-sync/config.yaml -q
+*/5 * * * * root <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
 EOF
 ```
 
@@ -293,7 +294,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/bw-sync --config /etc/bw-sync/config.yaml -q
+ExecStart=<a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
 User=root
 
 [Install]
@@ -331,7 +332,7 @@ qwenpaw cron create \
   --channel console \
   --target-user "default" \
   --target-session "cron-bw-sync" \
-  --text "请执行 Bitwarden 密钥同步：运行 /usr/local/bin/bw-sync --config /etc/bw-sync/config.yaml -q" \
+  --text "请执行 Bitwarden 密钥同步：运行 <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q" \
   --timeout 30 \
   --silent
 ```
@@ -342,7 +343,7 @@ qwenpaw cron create \
 
 ### 场景 1：QwenPaw 用（当前方案）
 
-配置文件 `/etc/bw-sync/qwenpaw.yaml`：
+配置文件 `<a_work>/configs/bw-sync.yaml`（QwenPaw 用 env_set 模式）：
 
 ```yaml
 bitwarden:
@@ -369,9 +370,9 @@ Supervisor wrapper 启动：
 
 ```bash
 #!/bin/bash
-# /usr/local/bin/start-qwenpaw.sh
+# 启动 wrapper（系统级基础设施，用绝对路径）
 source ~/.bw/env 2>/dev/null
-timeout 15 bw-sync --config /etc/bw-sync/qwenpaw.yaml -q
+timeout 15 <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
 exec /app/venv/bin/qwenpaw app --host 0.0.0.0 --port 8088
 ```
 
@@ -495,11 +496,12 @@ services:
 旧版（v1）是硬编码的 QwenPaw 专用脚本。迁移到通用版 bw-sync：
 
 ```bash
-# 1. 创建通用配置文件
-cat > /etc/bw-sync/qwenpaw.yaml << 'EOF'
+# 1. 创建通用配置文件（用户级收口目录）
+mkdir -p "$HOME/a_work/configs"
+cat > "$HOME/a_work/configs/bw-sync.yaml" << 'EOF'
 bitwarden:
   project_id: "你的 Project ID"
-  bws_path: "/root/.local/bin/bws"
+  bws_path: "bws"
   token:
     source: "file"
     file_path: "~/.bw/env"
@@ -514,8 +516,8 @@ secrets:
     ANYSEARCH_API_KEY: ANYSEARCH_API_KEY
 EOF
 
-# 2. 测试
-bw-sync --config /etc/bw-sync/qwenpaw.yaml --dry-run
+# 2. 测试（用户级收口目录脚本）
+"$HOME/a_work/scripts/bw-sync" --config "$HOME/a_work/configs/bw-sync.yaml" --dry-run
 
 # 3. 旧版脚本仍可用，建议逐步切换到通用版
 #    新版 bw-sync 与旧 sync-bw.py 不冲突，可共存
