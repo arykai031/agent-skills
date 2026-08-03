@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-08-03T05:53:30Z",
+  "updated": "2026-08-03T07:01:15Z",
   "skills": [
     {
       "name": "a-work-collection",
