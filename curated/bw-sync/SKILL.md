@@ -74,15 +74,30 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 
 ### 第 2 步：生成配置文件
 
-向用户确认以下信息后，编辑配置 `<a_work>/configs/bw-sync.yaml`：
+向用户确认以下信息后，编辑配置 `<a_work>/configs/bw-sync.yaml`。
 
-| 配置项 | 说明 | 需要用户提供 |
-|--------|------|-------------|
-| `bitwarden.project_id` 或 `organization_id` | 密钥所在项目/组织 | ✅ 必须 |
-| `output.mode` | `env_set`（agent 环境）/ `env_file`（.env 文件）/ `stdout` / `shell` | ✅ 按目标选 |
-| `output.target_command` | 仅 env_set 模式，如 `qwenpaw env set` | 按 agent 定 |
-| `secrets.MAP` | 环境变量名 → Bitwarden key 映射 | ✅ 按需同步的密钥 |
-| `secrets.pass_through` | true = Bitwarden key 直接当环境变量名 | 可选 |
+**用户必须手动编辑的就 3 类**（其余保持默认，install.sh 已写好的不用动）：
+
+| # | 配置项 | 必填 | 填什么 | 例子 |
+|---|--------|:----:|--------|------|
+| 1 | `bitwarden.project_id` | ✅ 必须 | 密钥所在项目 UUID（与 organization_id 二选一） | `206d7fbd-7edb-4dc7-afe6-1e9325889d48` |
+| 1' | 或 `bitwarden.organization_id` | ✅ 必须 | 密钥所在组织 UUID（与 project_id 二选一） | `962510f9-5b71-41e1-abff-b3940017c1f6` |
+| 2 | `output.mode` | ✅ 必须 | 同步目标：`env_set` / `env_file` / `stdout` / `shell` | `env_set` |
+| 2' | `output.target_command` | 按模式 | 仅 `env_set` 模式必填，如 `qwenpaw env set` | `qwenpaw env set` |
+| 2'' | `output.env_file_path` | 按模式 | 仅 `env_file` 模式必填，如 `~/.hermes/.env` | `~/.hermes/.env` |
+| 3 | `secrets.MAP` | ✅ 必须 | 环境变量名 → Bitwarden key 映射（想同步哪些就写哪些） | `GITHUB_TOKEN: GITHUB_TOKEN` |
+
+**可选/有默认值，一般不用动**：
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `secrets.pass_through` | `false` | `true` = Bitwarden key 直接当环境变量名，不用 MAP |
+| `output.env_file_append` | `false` | `true` = 追加而非覆盖 .env |
+| `output.only_keys` / `exclude_keys` | 空 | 可选过滤，默认同步全部 |
+| `bitwarden.bws_path` | `"bws"` | 自动查找 PATH；仅当 bws 不在 PATH 时填绝对路径 |
+| `bitwarden.token.*` | file + `~/.bw/env` | install.sh 已写好，不要动 |
+
+> 💡 **给 agent 的提示**：配置完成后，把 `secrets.MAP` 里的 `EXAMPLE_KEY` 占位全部替换成真实密钥名，否则 dry-run 会报"部分密钥缺失"。
 
 常见目标快速参考：
 
