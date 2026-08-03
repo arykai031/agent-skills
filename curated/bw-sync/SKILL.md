@@ -63,14 +63,17 @@ cd skills/bw-sync/scripts
 bash install.sh --token "<BWS_ACCESS_TOKEN>"
 ```
 
-install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置模板 `/etc/bw-sync/config.yaml`。
+install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置模板 `/etc/bw-sync/config.yaml` → **部署到收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`）。
 
+- 收口目录（a_work/Yon-w 等）自动探测：`$HOME/a_work` → `$(pwd)/Yon-w` → `$(pwd)/a_work`，也可显式指定：`bash install.sh --deploy-dir "$HOME/a_work"`
 - 若用户已提供 token：`--token` 传入
 - 若用户还没拿到 token：先运行 `bash install.sh`（跳过 token），**明确告诉用户下一步去 Bitwarden 控制台生成 token，拿到后补跑** `bash install.sh --token "<新token>"`
 
+> 💡 **工作链**：技能部署后，日常同步操作直接使用收口目录中的脚本（`<a_work>/scripts/bw-sync`）与配置（`<a_work>/configs/bw-sync.yaml`），收口目录是实际使用版本。
+
 ### 第 2 步：生成配置文件
 
-向用户确认以下信息后，编辑 `/etc/bw-sync/config.yaml`：
+向用户确认以下信息后，编辑配置（收口目录 `<a_work>/configs/bw-sync.yaml`，与 `/etc/bw-sync/config.yaml` 同步生效）：
 
 | 配置项 | 说明 | 需要用户提供 |
 |--------|------|-------------|
@@ -91,11 +94,11 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 ### 第 3 步：验证
 
 ```bash
-# 预览（不实际写入）
-bw-sync -c /etc/bw-sync/config.yaml --dry-run
+# 预览（不实际写入）—— 使用收口目录脚本 + 配置
+<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml --dry-run
 
 # 确认无误后执行
-bw-sync -c /etc/bw-sync/config.yaml
+<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml
 ```
 
 **验证通过的标准**：dry-run 输出中每个 MAP 密钥都取到了值（`成功 N，失败 0`）。若有失败，检查：
@@ -105,14 +108,14 @@ bw-sync -c /etc/bw-sync/config.yaml
 
 ### 第 4 步：设置定时同步（按需，需用户确认）
 
-向用户说明定时同步的意义（Bitwarden 更新后自动拉到本地，无需手动），让用户选择方式：
+向用户说明定时同步的意义（Bitwarden 更新后自动拉到本地，无需手动），让用户选择方式。**定时命令统一使用收口目录中的脚本与配置**：
 
 | 环境 | 方式 | 命令/配置 |
 |------|------|----------|
-| Supervisor 容器 | 启动前同步 | `command=/bin/sh -c "bw-sync -c /etc/bw-sync/config.yaml -q && exec my-app"` |
-| Cron | 每 5 分钟 | `*/5 * * * * /usr/local/bin/bw-sync -c /etc/bw-sync/config.yaml -q` |
+| Supervisor 容器 | 启动前同步 | `command=/bin/sh -c "<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q && exec my-app"` |
+| Cron | 每 5 分钟 | `*/5 * * * * <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q` |
 | Systemd Timer | 启动 30s + 每 5 分钟 | `OnBootSec=30s` + `OnUnitActiveSec=5min` |
-| QwenPaw Cron | 每 30 分钟 | `qwenpaw cron create --agent-id <id> --type agent --cron "*/30 * * * *" --text "运行 bw-sync -c /etc/bw-sync/config.yaml -q"` |
+| QwenPaw Cron | 每 30 分钟 | `qwenpaw cron create --agent-id <id> --type agent --cron "*/30 * * * *" --text "运行 <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q"` |
 
 > 若用户不需要定时，可跳过此步，手动执行即可。
 

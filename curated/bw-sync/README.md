@@ -82,7 +82,9 @@ cd skills/bw-sync/scripts
 bash install.sh --token "<BWS_ACCESS_TOKEN>"
 ```
 
-install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置模板 `/etc/bw-sync/config.yaml`。
+install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置模板 `/etc/bw-sync/config.yaml` → **部署到收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`）。
+
+- 收口目录自动探测：`$HOME/a_work` → `$(pwd)/Yon-w` → `$(pwd)/a_work`，也可显式指定 `--deploy-dir`
 
 ### 手动安装（可选，不用 install.sh 时）
 
@@ -241,6 +243,8 @@ Bitwarden 中的 **Secret Key 直接作为环境变量名**，同步所有密钥
 ---
 
 ## 触发方式
+
+> 📁 **收口目录工作链**：install.sh 已部署收口目录副本（脚本 `<a_work>/scripts/bw-sync` + 配置 `<a_work>/configs/bw-sync.yaml`）时，**日常同步/定时任务优先使用收口目录路径**；未部署时回退到系统级路径（`/usr/local/bin/bw-sync` + `/etc/bw-sync/config.yaml`）。以下示例均可用 `<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml` 替换。
 
 ### 方式 A：Supervisor Wrapper（容器环境，当前方案）
 
