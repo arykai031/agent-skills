@@ -41,7 +41,7 @@ command -v bws 2>/dev/null || ls ~/.local/bin/bws 2>/dev/null || echo "bws CLI �
 | 3 | **项目 project_id**（或 organization_id） | Secrets Manager → Projects 创建项目，复制 UUID | 👤 用户创建，或 agent 用 bws 代建 |
 | 4 | **密钥已录入项目** | Projects → 项目 → 添加 Secret（key=value） | 👤 用户（agent 可代建但需值） |
 | 5 | **Machine Account + Access Token** | Machine Accounts → 创建 → 授予项目 Read 权限 → 生成 token（只显示一次） | 👤 用户手动（网页端） |
-| 6 | **目标配置**：同步到哪、用哪些密钥 | agent 询问用户决定 | 🤝 一起 |
+| 6 | **目标配置**：密钥同步到哪、用哪些密钥 | 👤 用户说目标（如"QwenPaw""Hermes 的 .env"），🤖 agent 据此选 output.mode 并配好 | 🤝 一起 |
 
 **向用户说明的要点：**
 - Machine Account 只给 **Read 权限**（bw-sync 只拉不写，最小权限）
@@ -76,16 +76,22 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 
 向用户确认以下信息后，编辑配置 `<a_work>/configs/bw-sync.yaml`。
 
-**用户必须手动编辑的就 3 类**（其余保持默认，install.sh 已写好的不用动）：
+**用户只需回答 3 个问题**（`output.mode` 等由 agent 根据目标推断，不要求用户懂技术）：
 
-| # | 配置项 | 必填 | 填什么 | 例子 |
-|---|--------|:----:|--------|------|
-| 1 | `bitwarden.project_id` | ✅ 必须 | 密钥所在项目 UUID（与 organization_id 二选一） | `206d7fbd-7edb-4dc7-afe6-1e9325889d48` |
-| 1' | 或 `bitwarden.organization_id` | ✅ 必须 | 密钥所在组织 UUID（与 project_id 二选一） | `962510f9-5b71-41e1-abff-b3940017c1f6` |
-| 2 | `output.mode` | ✅ 必须 | 同步目标：`env_set` / `env_file` / `stdout` / `shell` | `env_set` |
-| 2' | `output.target_command` | 按模式 | 仅 `env_set` 模式必填，如 `qwenpaw env set` | `qwenpaw env set` |
-| 2'' | `output.env_file_path` | 按模式 | 仅 `env_file` 模式必填，如 `~/.hermes/.env` | `~/.hermes/.env` |
-| 3 | `secrets.MAP` | ✅ 必须 | 环境变量名 → Bitwarden key 映射（想同步哪些就写哪些） | `GITHUB_TOKEN: GITHUB_TOKEN` |
+| # | 问用户的问题 | 用户提供 | 对应配置项 | 必填 |
+|---|-------------|---------|-----------|:----:|
+| 1 | "密钥在哪个 Bitwarden 项目？" | 项目/组织 UUID | `bitwarden.project_id` 或 `organization_id` | ✅ 必须 |
+| 2 | "密钥要同步到哪里？" | 目标描述（如"QwenPaw""Hermes 的 .env""CI 管道"） | → agent 据此选 `output.mode` + 目标参数 | ✅ 必须 |
+| 3 | "要同步哪些密钥？" | 密钥清单（环境变量名 ↔ Bitwarden key） | `secrets.MAP` | ✅ 必须 |
+
+**agent 根据问题 2 的目标自行配置 `output.mode`**（用户不需要懂模式区别）：
+
+| 用户说"同步到…" | agent 配置 `output.mode` | 附加参数 |
+|----------------|-------------------------|---------|
+| QwenPaw | `env_set` | `target_command: "qwenpaw env set"` |
+| Hermes / Codex CLI / 任意程序 | `env_file` | `env_file_path: "<目标 .env 路径>"` |
+| CI 管道 / 取 JSON 结果 | `stdout` | 无 |
+| shell 环境注入 | `shell` | 无 |
 
 **可选/有默认值，一般不用动**：
 
