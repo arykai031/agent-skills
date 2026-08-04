@@ -132,12 +132,15 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 
 向用户说明定时同步的意义（Bitwarden 更新后自动拉到本地，无需手动），让用户选择方式。**定时命令统一使用收口目录中的脚本与配置**：
 
+> 💡 **频率建议**：Bitwarden 密钥变动通常不频繁，**默认推荐"手动同步 + 低频定时兜底"**（如每 3 天凌晨 4 点）。仅当密钥高频变更时才用高频率定时。
+
 | 环境 | 方式 | 命令/配置 |
 |------|------|----------|
+| **手动按需** | 本地需要新密钥时，人工在 Bitwarden 添加后手动执行 | `<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml` |
 | Supervisor 容器 | 启动前同步 | `command=/bin/sh -c "<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q && exec my-app"` |
-| Cron | 每 5 分钟 | `*/5 * * * * <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q` |
-| Systemd Timer | 启动 30s + 每 5 分钟 | `OnBootSec=30s` + `OnUnitActiveSec=5min` |
-| QwenPaw Cron | 每 30 分钟 | `qwenpaw cron create --agent-id <id> --type agent --cron "*/30 * * * *" --text "运行 <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q"` |
+| Cron | 每 3 天凌晨 4 点 | `0 4 */3 * * <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q` |
+| Systemd Timer | 低频兜底 | `OnBootSec=30s` + `OnUnitActiveSec=3d`（每 3 天） |
+| QwenPaw Cron | 每 3 天凌晨 4 点（北京时间） | `qwenpaw cron create --agent-id <id> --type agent --cron "0 4 */3 * *" --timezone "Asia/Shanghai" --text "请执行 Bitwarden 密钥同步：运行 <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q" --silent` |
 
 > 若用户不需要定时，可跳过此步，手动执行即可。
 
