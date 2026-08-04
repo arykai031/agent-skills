@@ -1,6 +1,6 @@
 ---
 name: bw-sync
-description: Use this skill when the user needs to sync secrets from Bitwarden Secrets Manager to local targets — agents (QwenPaw, Hermes, Codex CLI), .env files, shell environments, or CI pipelines. Triggers: "bw-sync", "bitwarden sync", "sync secrets", "密钥同步", "bitwarden 密钥", "同步密码到本地".
+description: 'Use this skill when the user needs to sync secrets from Bitwarden Secrets Manager to local targets — agents (QwenPaw, Hermes, Codex CLI), .env files, shell environments, or CI pipelines. Triggers: "bw-sync", "bitwarden sync", "sync secrets", "密钥同步", "bitwarden 密钥", "同步密码到本地".'
 metadata:
   qwenpaw:
     emoji: "🔐"
