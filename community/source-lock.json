@@ -36,6 +36,12 @@
       "version": "3.0.0",
       "installed_at": "2026-07-30",
       "install_cmd": "skillhub install runesleo-systematic-debugging"
+    },
+    "@tencent-adm/westock-data": {
+      "source": "skillhub",
+      "version": "1.0.6",
+      "installed_at": "2026-08-06",
+      "install_cmd": "skillhub install westock-data --namespace tencent-adm"
     }
   }
 }
