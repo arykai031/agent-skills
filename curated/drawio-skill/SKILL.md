@@ -94,6 +94,8 @@ drawio --version
 
 # Linux
 drawio --version
+
+**Yon-Agent 环境适配（QwenPaw on Debian, root + headless）：** 本环境 draw.io 31.1.8 已装在 `/usr/bin/drawio`（deb 包）。由于以 root 运行且无显示器，**必须**用 `xvfb-run -a drawio --no-sandbox ...` 形式调用（裸 `drawio --version` 会因 root sandbox 限制崩溃；有显示器时去掉 `xvfb-run -a` 但保留 `--no-sandbox`）。导出同样加前缀：`xvfb-run -a drawio --no-sandbox -x -f png -o out.png in.drawio`。dbus 报错（`Failed to connect to the bus`）无害，忽略。
 ```
 
 Install draw.io desktop if missing:
