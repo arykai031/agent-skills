@@ -105,13 +105,24 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 
 > 💡 **给 agent 的提示**：配置完成后，把 `secrets.MAP` 里的 `EXAMPLE_KEY` 占位全部替换成真实密钥名，否则 dry-run 会报"部分密钥缺失"。
 
-常见目标快速参考：
+常见目标快速参考（**平台落盘对照**）：
 
-- **QwenPaw**：`mode: env_set`, `target_command: "qwenpaw env set"`
-- **Hermes**：`mode: env_file`, `env_file_path: "~/.hermes/.env"`
-- **Codex CLI**：`mode: env_file`, `env_file_path: "~/.codex/.env"`
-- **Docker Compose**：`mode: env_file`, `env_file_path: "./.env.production"`
-- **CI 管道**：`mode: stdout`（JSON 输出，`bw-sync > secrets.json`）
+| 目标平台 | 推荐模式 | 配置 | 落盘位置是否持久 |
+|---------|---------|------|:---:|
+| **QwenPaw** | `env_set` | `target_command: "qwenpaw env set"` | ✅ envs.json（应用自有存储） |
+| **Windows**（用户环境变量） | `env_set` | `target_command: "setx"` | ✅ 注册表（用户级） |
+| **Windows**（PowerShell） | `env_set` | `target_command: "powershell -Command [Environment]::SetEnvironmentVariable"` | ✅ 注册表 |
+| **Windows**（项目/应用） | `env_file` | `env_file_path: "C:\\proj\\.env"` | ✅ 用户指定持久目录 |
+| **WSL / Linux**（shell 会话） | `shell` | 无（`eval "$(bw-sync ... --mode shell)"`） | ❌ 仅当前会话 |
+| **WSL / Linux**（持久化，推荐） | `env_file` | `env_file_path: "<a_work>/configs/secrets.env"` + `env-setup.sh` 接 .bashrc | ✅ 收口目录 |
+| **Linux 系统级** | `env_file` 或手动 | `/etc/environment`（格式即 KEY=VAL，需 root） | ✅ 系统盘 |
+| **Hermes / Codex CLI** | `env_file` | `env_file_path: "~/.hermes/.env"` 等 | ✅ 应用自有路径 |
+| **Docker Compose** | `env_file` | `env_file_path: "./.env.production"` | ✅ 项目目录 |
+| **CI 管道** | `stdout` | 无（JSON 输出，`bw-sync > secrets.json`） | — |
+
+> 💡 **落盘位置原则（重要）**：密钥文件**优先放收口目录**（`<a_work>/configs/`），**不要依赖易失路径**（如 `~/.bashrc`、`/etc`、容器 `/root` 下的文件——这些在容器重建/重置后会丢失）。收口目录是"唯一保留地"，密钥放这里 + 权限 600 = 容器重建后密钥不丢，只需重跑一次环境接入脚本。
+
+> 💡 **shell 接入方式（env-setup.sh）**：密钥文件放收口目录后，用 `<a_work>/scripts/env-setup.sh` 幂等地在 `~/.bashrc` 加一行 `source <a_work>/configs/secrets.env`。`.bashrc` 只是"消费入口"，丢了不影响密钥文件本身；重建后重跑一次 env-setup.sh 即可恢复。Windows 注意：WSL 和 Windows 环境变量隔离，WSL 里落盘不会进 Windows 注册表。
 
 ### 第 3 步：验证
 
@@ -172,16 +183,18 @@ secrets:
 
 | 模式 | 用途 | 示例 |
 |------|------|------|
-| `env_set` | 调目标命令写环境变量 | QwenPaw: `target_command: "qwenpaw env set"` |
-| `env_file` | 写 `.env` 文件 | Hermes、Docker Compose |
+| `env_set` | 调目标命令写环境变量（命令可配置，不限平台） | QwenPaw: `qwenpaw env set`；Windows: `setx` |
+| `env_file` | 写 `.env` 文件（**跨平台通用**，写入后自动 chmod 600） | `<a_work>/configs/secrets.env`、Docker Compose |
 | `stdout` | 输出 JSON | CI/CD 管道 |
-| `shell` | 输出 export 语句 | `eval "$(bw-sync --config x.yaml --mode shell)"` |
+| `shell` | 输出 export 语句（仅 POSIX shell） | `eval "$(bw-sync --config x.yaml --mode shell)"` |
 
 ## 安全注意
 
 - Token 文件 `chmod 600`，仅 root 可读（install.sh 已处理）
-- Machine Account 只给 **Read** 权限
+- **env_file 模式写入的密钥文件自动 `chmod 600`**（仅 owner 可读写；FAT 等不支持 chmod 的文件系统除外）
+- 密钥文件**优先放收口目录**（`<a_work>/configs/`），不放易失路径（容器 `/root`、`/etc` 等重建即还原）
 - 配置文件里不存 Token（从独立文件/env 读）
+- Machine Account 只给 **Read** 权限
 - Access Token 建议每 90 天轮换
 
 ## 常见问题

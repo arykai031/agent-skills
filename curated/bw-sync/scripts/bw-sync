@@ -29,7 +29,7 @@ import sys
 # ============================================================
 # 常量
 # ============================================================
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 DEFAULT_BWS_PATH = shutil.which("bws") or "/root/.local/bin/bws"
 DEFAULT_TOKEN_FILE = os.path.expanduser("~/.bw/env")
 
@@ -140,7 +140,13 @@ def output_env_file(env_map, file_path, append, dry_run):
     with open(path, mode) as f:
         f.write(content)
 
-    print(f"[OK]   {len(lines)} 条密钥写入 {path} ({'追加' if append else '覆盖'})")
+    # 密钥文件含敏感凭据：写入后收紧权限为 600（仅 owner 可读写）
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass  # 某些文件系统不支持 chmod，忽略（如 FAT）
+
+    print(f"[OK]   {len(lines)} 条密钥写入 {path} ({'追加' if append else '覆盖'})，权限已设为 600")
     return len(lines), 0
 
 

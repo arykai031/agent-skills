@@ -25,7 +25,9 @@ output:
   target_command: "qwenpaw env set"
 
   # env_file 模式
-  env_file_path: ".env"
+  # 建议优先用收口目录路径（如 <a_work>/configs/secrets.env），不要放易失路径
+  # （容器 /root、/etc 等重建即还原）；写入后自动 chmod 600
+  env_file_path: "<a_work>/configs/secrets.env"
   env_file_append: false      # false=覆盖, true=追加
 
   # 过滤（可选）

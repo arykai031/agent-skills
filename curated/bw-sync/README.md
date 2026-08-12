@@ -144,7 +144,7 @@ bitwarden:
 
 output:
   mode: "env_file"          # 输出模式
-  env_file_path: ".env"     # 写入 .env 文件
+  env_file_path: "<a_work>/configs/secrets.env"   # 推荐收口目录路径（自动 chmod 600）
   env_file_append: false    # false=覆盖, true=追加
 
 secrets:
@@ -187,7 +187,7 @@ output:
   # --- env_set 模式参数 ---
   target_command: "qwenpaw env set"
   # --- env_file 模式参数 ---
-  env_file_path: ".env"
+  env_file_path: "<a_work>/configs/secrets.env"   # 推荐收口目录路径（自动 chmod 600）
   env_file_append: false
   # --- 过滤 ---
   only_keys: []               # 仅同步这些 key
@@ -482,6 +482,8 @@ services:
 | 措施 | 说明 |
 |------|------|
 | **Token 文件权限** | `chmod 600 ~/.bw/env`，只有 root 可读 |
+| **密钥文件权限** | `env_file` 模式写入后**自动 `chmod 600`**（v2.1.0+） |
+| **落盘位置** | 密钥文件优先放**收口目录**（`<a_work>/configs/`），不放易失路径（容器 `/root`、`/etc` 等重建即还原）；shell 接入用 `env-setup.sh` 幂等加 `.bashrc` source 行 |
 | **Machine Account 权限** | 只给 **Read** 权限，不给 Write/Admin |
 | **最小同步原则** | 只同步目标系统真正需要的密钥 |
 | **配置文件不存 Token** | token 从独立文件/env 读取，不写在配置 YAML 里 |
