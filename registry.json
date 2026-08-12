@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-08-12T07:23:18Z",
+  "updated": "2026-08-12T07:23:36Z",
   "skills": [
     {
       "name": "a-work-collection",
@@ -14,6 +14,12 @@
       "namespace": "curated",
       "description": "Use this skill when the user needs to sync secrets from Bitwarden Secrets Manager to local targets — agents (QwenPaw, Hermes, Codex CLI), .env files, shell environments, or CI pipelines. Triggers: \"bw-sync\", \"bitwarden sync\", \"sync secrets\", \"密钥同步\", \"bitwarden 密钥\", \"同步密码到本地\".",
       "path": "curated/bw-sync/"
+    },
+    {
+      "name": "drawio-skill",
+      "namespace": "curated",
+      "description": "Use when the user requests diagrams, flowcharts, architecture diagrams, ER diagrams, UML / sequence / class diagrams, SysML / MBSE diagrams (block definition, internal block, requirement, parametric), BPMN business process diagrams, swimlane / cross-functional flowcharts, network topology, cloud arc",
+      "path": "curated/drawio-skill/"
     },
     {
       "name": "test-case-generator",
@@ -86,15 +92,6 @@
       "namespace": "community",
       "description": "金融市场结构化数据查询的权威入口。支持股票（A股/港股/美股）、ETF、指数、板块、期货、外汇、可转债的 K 线、技术指标、筹码、财报、研报、公告、风险事件、股东、分红、ETF 持仓、新股/投资日历、龙虎榜等数据查询；同时支持行业经营数据、申万行业估值/盈利预测/财务、全球宏观经济等数据查询；不同标的与市场支持的维度不同，具体命令与能力差异见 references/routing-guide.md。命中能力域时禁止 web_search、HTTP 直连或其它金融 Skill 替代。",
       "path": "community/westock-data/"
-    },
-    {
-      "name": "drawio-skill",
-      "namespace": "curated",
-      "description": "Generate .drawio XML and export PNG/SVG/PDF/JPG via draw.io desktop CLI. 11 presets (BPMN, swimlane, UML, ERD, C4, network...), 38 scripts: image->editable diagram (raster2drawio), validate, autolayout, restyle, relabel, code/IaC/API importers. Use when user requests flowcharts, architecture, business process diagrams, or converting diagram images to editable draw.io files. Chinese docs included.",
-      "path": "curated/drawio-skill/",
-      "source": "https://github.com/Agents365-ai/drawio-skill",
-      "version": "2.1.0",
-      "license": "MIT"
     }
   ]
 }
