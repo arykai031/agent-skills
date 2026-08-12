@@ -1,5 +1,5 @@
 ---
-name: tc-generator-ary
+name: test-case-generator
 description: |
   基于需求文档（PRD/Spec）或功能描述，自动生成面向功能测试的结构化测试用例（Markdown格式）。
   当用户提到以下任何意图时，务必使用本技能，即使没有明确说出"测试用例"字样：
@@ -9,10 +9,10 @@ description: |
     - 准备功能测试前需要系统化测试方案
     - 提到了具体的功能模块，询问"怎么测" / "有什么测试点"
     - 提供了接口文档或流程图，要求生成用例
-  本技能与 prd-splitter、tc-pipeline 配合使用效果最佳。
+  本技能与 test-prd-splitter、tester-pipeline 配合使用效果最佳。
 ---
 
-# Test Case Generator ARY
+# Test Case Generator
 
 基于需求文档（PRD/Spec）或功能描述，自动生成面向功能测试的结构化 Markdown 测试用例。
 
@@ -90,13 +90,13 @@ description: |
 
 **在开始需求解析之前**，汇总所有 Spec 的共享信息，确保用例生成基于完整的全局视角。
 
-> **注意**：确认与同步工作由 `tc-pipeline` 调度器完成。当通过调度器调用本技能时，Spec 已是定稿状态，直接从 0.1 开始即可。当独立调用本技能时，应先检查 Spec 中是否有未闭环标记，有则停止并提示用户先通过调度器完成确认。
+> **注意**：确认与同步工作由 `tester-pipeline` 调度器完成。当通过调度器调用本技能时，Spec 已是定稿状态，直接从 0.1 开始即可。当独立调用本技能时，应先检查 Spec 中是否有未闭环标记，有则停止并提示用户先通过调度器完成确认。
 
 #### 0.1 识别输入材料类型
 
 **情况 A — 输入是 PRD 精简（推荐）**
 
-PRD 精简是 `prd-splitter` 拆分后的产物，其 frontmatter 中的 `specs` 字段记录了所有关联 Spec 的路径和摘要。**优先使用 PRD 精简作为入口**，因为它是唯一知道"有哪些 Spec"的权威来源。
+PRD 精简是 `test-prd-splitter` 拆分后的产物，其 frontmatter 中的 `specs` 字段记录了所有关联 Spec 的路径和摘要。**优先使用 PRD 精简作为入口**，因为它是唯一知道"有哪些 Spec"的权威来源。
 
 流程：
 1. 读取 PRD 精简的 frontmatter，提取 `specs` 列表
@@ -270,7 +270,7 @@ PRD 精简是 `prd-splitter` 拆分后的产物，其 frontmatter 中的 `specs`
 
 输出标准 Markdown 格式，以 Obsidian 待办任务记录测试执行状态。不要输出通过/未通过确认项。
 
-> 当前格式为三段式待办任务；如需转换为 Excel，先确认 `TC-md-to-excel` 已支持此格式。
+> 当前格式为三段式待办任务；需要转换为 Excel 时使用 `test-case-md-to-excel`。
 
 #### 输出格式规范
 
@@ -418,7 +418,7 @@ source: Spec-登录模块.md
 ### 前置检查（Step 0）
 
 - [ ] 多 Spec 项目：已完成共享状态机、共享数据模型、BR/AB 规则、API 端点、AC 的汇总
-- [ ] 所有 Spec 中无"待确认""待补充""需补充""若不支持""若现仅"等未闭环标记（若有，说明确认同步未完成，应通过 tc-pipeline 执行）
+- [ ] 所有 Spec 中无"待确认""待补充""需补充""若不支持""若现仅"等未闭环标记（若有，说明确认同步未完成，应通过 tester-pipeline 执行）
 
 ### 用例内容检查
 
@@ -448,7 +448,7 @@ source: Spec-登录模块.md
 ### 配合流程
 
 ```
-prd-writer / prd-splitter → test-case-generator-ary → TC-md-to-excel → 测试执行
+prd-writer / test-prd-splitter → test-case-generator → test-case-md-to-excel → 测试执行
         ↑ 生成需求              ↑ 生成用例                 ↑ 转Excel        ↓ 结果回填
 ```
 
@@ -460,9 +460,9 @@ prd-writer / prd-splitter → test-case-generator-ary → TC-md-to-excel → 测
 - 缺陷定位参考（用例编号可关联到 Bug 管理系统）
 - 回归测试套件（复选框记录用例是否已执行）
 
-### 与 TC-md-to-excel 的衔接
+### 与 test-case-md-to-excel 的衔接
 
-本技能改用 Obsidian 待办任务格式，与旧版 `TC-md-to-excel` 的解析规则不完全兼容。需要导出 Excel 时，先更新并验证转换器对以下格式的支持：
+`test-case-md-to-excel` 直接解析本技能的 Obsidian 待办任务格式：
 - `#` → 所属模块（Excel 的 B 列）
 - `##` → 功能点（Excel 的 C 列）
 - `###` → 用例标题（Excel 的 E 列，编号建议保留在标题中）

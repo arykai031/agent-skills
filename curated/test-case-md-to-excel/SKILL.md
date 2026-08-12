@@ -1,14 +1,16 @@
 ---
-name: tc-md-to-excel
+name: test-case-md-to-excel
 description: |
   将 Markdown 格式的测试用例批量转换为格式化的 Excel 文件。
+  优先解析 test-case-generator 生成的 Obsidian 三段式待办，同时兼容旧版 [Px] 四段式。
+  支持批量扫描目录下所有测试用例文件，自动按模块拼音首字母生成编号（TC-模块缩写-序号），
+  输出包含 9 列（用例编号、所属模块、功能点、优先级、用例标题、前置条件、操作步骤、预期结果、执行结果）的带样式 Excel 文件。
   当用户需要将 Markdown 测试用例转换为 Excel、批量生成测试用例编号、或处理标准格式的测试用例文件时，应触发此技能。
-agent_created: true
 ---
 
-# TC-md-to-excel
+# test-case-md-to-excel
 
-将标准 Markdown 格式的测试用例批量转换为带样式的 Excel 文件。
+将标准 Markdown 测试用例批量转换为带样式的 Excel 文件。
 
 ## 触发条件
 
@@ -19,7 +21,7 @@ agent_created: true
 
 ## Markdown 格式规范
 
-测试用例 Markdown 文件必须遵循以下结构（详见 `assets/case_template.md`）：
+优先使用以下结构（详见 `assets/case_template.md`）：
 
 ```markdown
 # 所属模块
@@ -28,22 +30,22 @@ agent_created: true
 
 ### 用例标题
 
-- [Px] 前置条件 | 操作步骤 | 预期结果 | 执行结果
+- [ ] 1️⃣  前置条件 | 操作步骤 | 预期结果
+- **数据依赖**：无
 ```
 
 ### 字段说明
 
-| 符号                      | 含义                                |
-| ----------------------- | --------------------------------- |
-| `#`                     | 所属模块（一级标题）                        |
-| `##`                    | 功能点（二级标题）                         |
-| `###`                   | 用例标题（三级标题）                        |
-| `[Px]`                  | 优先级：P0 必测 / P1 重要 / P2 一般 / P3 可选 |
-| `\|`                    | 字段分隔符（前置条件、操作步骤、预期结果、执行结果）        |
-| `;` 或 `；`               | 同一字段内多条内容的分隔符                     |
-| `- [x] 通过 - [ ] 未通过`    | 测试通过                              |
-| `- [ ] 通过 - [x] 未通过`    | 未通过                               |
-| `- [ ] 通过 - [x] 未通过 原因` | 未通过：原因                            |
+| 符号 | 含义 |
+| --- | --- |
+| `#` / `##` / `###` | 所属模块、功能点、用例标题 |
+| `[ ]` / `[x]` | 未执行 / 已执行，不表示通过或失败 |
+| `1️⃣` / `2️⃣` / `3️⃣` / `4️⃣` | 导出为 P0 / P1 / P2 / P3 |
+| `\|` | 分隔前置条件、操作步骤和预期结果 |
+| `;` 或 `；` | 分隔同一字段内的多条内容 |
+| `**数据依赖**` | 保留在 Markdown，不写入 Excel |
+
+转换器继续兼容旧版 `- [P0] 前置条件 | 操作步骤 | 预期结果 | 执行结果` 和 `- [x] [P0][复测] 前置条件 | 操作步骤 | 预期结果`，但新用例统一使用 Obsidian 三段式。
 
 ## 执行流程
 
@@ -59,7 +61,7 @@ agent_created: true
 执行 `scripts/tc_md_to_excel.py`：
 
 ```bash
-python scripts/tc_md_to_excel.py [测试用例目录] [--prefix TC] [--output 输出路径.xlsx]
+python3 scripts/tc_md_to_excel.py [测试用例目录] [--prefix TC] [--output 输出路径.xlsx]
 ```
 
 **参数说明：**
@@ -97,13 +99,13 @@ Excel 包含 9 列：
 | F | 前置条件 | 分号分隔内容自动编号 |
 | G | 操作步骤 | 分号分隔内容自动编号 |
 | H | 预期结果 | 分号分隔内容自动编号 |
-| I | 执行结果 | 通过/未通过/备注 |
+| I | 执行结果 | 新格式为未执行/已执行；旧格式保留通过/未通过解析 |
 
 ### 5. 样式说明
 
 - 表头：蓝色背景白色粗体，居中对齐
 - 优先级列：P0 红色 / P1 黄色 / P2 绿色 / P3 灰色
-- 执行结果列：测试通过绿色 / 未通过红色
+- 执行结果列：未执行灰色 / 已执行蓝色；旧格式测试通过绿色 / 未通过红色
 - 首行冻结 + 自动筛选
 - 所有列自动换行、统一边框
 
@@ -113,14 +115,14 @@ Excel 包含 9 列：
 - `openpyxl`（Excel 生成）
 - `pypinyin`（模块名拼音首字母提取）
 
-安装：`pip install openpyxl pypinyin`
+安装：`python3 -m pip install openpyxl pypinyin`
 
 ## 故障排除
 
 | 问题 | 解决方案 |
 |------|----------|
-| `ModuleNotFoundError: openpyxl` | 执行 `pip install openpyxl` |
-| `ModuleNotFoundError: pypinyin` | 执行 `pip install pypinyin` |
+| `ModuleNotFoundError: openpyxl` | 执行 `python3 -m pip install openpyxl` |
+| `ModuleNotFoundError: pypinyin` | 执行 `python3 -m pip install pypinyin` |
 | 未找到测试用例文件 | 检查文件名是否符合匹配规则，或确认目录路径正确 |
 | 用例编号模块缩写不正确 | 检查 `#` 标题是否为中文，pypinyin 会自动处理中英文混合模块名 |
 | 编码错误 | 脚本自动尝试 UTF-8 和 GBK 编码读取文件 |

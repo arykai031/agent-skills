@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-08-06T08:05:18Z",
+  "updated": "2026-08-12T03:07:21Z",
   "skills": [
     {
       "name": "a-work-collection",
@@ -16,34 +16,34 @@
       "path": "curated/bw-sync/"
     },
     {
-      "name": "dev-doc-to-test-prd",
+      "name": "test-case-generator",
+      "namespace": "curated",
+      "description": "基于需求文档（PRD/Spec）或功能描述，自动生成面向功能测试的结构化测试用例（Markdown格式）。 当用户提到以下任何意图时，务必使用本技能，即使没有明确说出\"测试用例\"字样： - \"为这个功能生成测试用例\" / \"帮我写一份测试用例\" - \"生成测试清单\" / \"帮我做一下测试分析\" - PRD/Spec 完成后需要落地验收标准 - 准备功能测试前需要系统化测试方案 - 提到了具体的功能模块，询问\"怎么测\" / \"有什么测试点\" - 提供了接口文档或流程图，要求生成用例 本技能与 test-prd-splitter、tester-pipeline 配合使用效果最佳。",
+      "path": "curated/test-case-generator/"
+    },
+    {
+      "name": "test-case-md-to-excel",
+      "namespace": "curated",
+      "description": "将 Markdown 格式的测试用例批量转换为格式化的 Excel 文件。 优先解析 test-case-generator 生成的 Obsidian 三段式待办，同时兼容旧版 [Px] 四段式。 支持批量扫描目录下所有测试用例文件，自动按模块拼音首字母生成编号（TC-模块缩写-序号）， 输出包含 9 列（用例编号、所属模块、功能点、优先级、用例标题、前置条件、操作步骤、预期结果、执行结果）的带样式 Excel 文件。 当用户需要将 Markdown 测试用例转换为 Excel、批量生成测试用例编号、或处理标准格式的测试用例文件时，应触发此技能。",
+      "path": "curated/test-case-md-to-excel/"
+    },
+    {
+      "name": "test-devdoc-to-prd",
       "namespace": "curated",
       "description": "将开发视角的PRD文档翻译为测试视角的需求确认文档。 当用户提到\"转测试文档\"、\"PRD转测试需求\"、\"需求确认文档\"、\"生成测试规格\"、\"开发文档翻译\"等意图时触发。 不适用于直接编写测试用例、测试计划或测试报告。",
-      "path": "curated/dev-doc-to-test-prd/"
+      "path": "curated/test-devdoc-to-prd/"
     },
     {
-      "name": "tc-generator-ary",
-      "namespace": "curated",
-      "description": "基于需求文档（PRD/Spec）或功能描述，自动生成面向功能测试的结构化测试用例（Markdown格式）。 当用户提到以下任何意图时，务必使用本技能，即使没有明确说出\"测试用例\"字样： - \"为这个功能生成测试用例\" / \"帮我写一份测试用例\" - \"生成测试清单\" / \"帮我做一下测试分析\" - PRD/Spec 完成后需要落地验收标准 - 准备功能测试前需要系统化测试方案 - 提到了具体的功能模块，询问\"怎么测\" / \"有什么测试点\" - 提供了接口文档或流程图，要求生成用例 本技能与 prd-splitter、tc-pipeline 配合使用效果最佳。",
-      "path": "curated/tc-generator-ary/"
-    },
-    {
-      "name": "tc-md-to-excel",
-      "namespace": "curated",
-      "description": "将 Markdown 格式的测试用例批量转换为格式化的 Excel 文件。 当用户需要将 Markdown 测试用例转换为 Excel、批量生成测试用例编号、或处理标准格式的测试用例文件时，应触发此技能。 agent_created: true",
-      "path": "curated/tc-md-to-excel/"
-    },
-    {
-      "name": "tc-pipeline",
-      "namespace": "curated",
-      "description": "测试用例全流程调度器。从原始设计文档/PRD 出发，自动调度子技能完成：翻译→拆分→确认→同步→生成用例。 当用户提到\"生成测试用例\"且输入是设计文档或未拆分的 PRD 时触发。 不适用于已有 Spec 且只需生成用例的场景（直接用 TC-generator-ary）。 related_skills: - dev-doc-to-test-prd: 阶段零，翻译开发设计文档为结构化 PRD - tc-prd-splitter: 阶段一，拆分 PRD 为 PRD精简 + 多份 Spec - tc-generator-ary: 阶段二，基于 Spec 生成测试用例 - tc-md-to-excel:",
-      "path": "curated/tc-pipeline/"
-    },
-    {
-      "name": "tc-prd-splitter",
+      "name": "test-prd-splitter",
       "namespace": "curated",
       "description": "拆分prd",
-      "path": "curated/tc-prd-splitter/"
+      "path": "curated/test-prd-splitter/"
+    },
+    {
+      "name": "tester-pipeline",
+      "namespace": "curated",
+      "description": "测试用例全流程调度器。从原始设计文档/PRD 出发，自动调度子技能完成：翻译→拆分→确认→同步→生成用例。 当用户提到\"生成测试用例\"且输入是设计文档或未拆分的 PRD 时触发。 不适用于已有 Spec 且只需生成用例的场景（直接用 test-case-generator）。",
+      "path": "curated/tester-pipeline/"
     },
     {
       "name": "agent-browser",

@@ -1,19 +1,16 @@
 ---
-name: tc-pipeline
+name: tester-pipeline
 description: |
   测试用例全流程调度器。从原始设计文档/PRD 出发，自动调度子技能完成：翻译→拆分→确认→同步→生成用例。
   当用户提到"生成测试用例"且输入是设计文档或未拆分的 PRD 时触发。
-  不适用于已有 Spec 且只需生成用例的场景（直接用 TC-generator-ary）。
-related_skills:
-  - dev-doc-to-test-prd: 阶段零，翻译开发设计文档为结构化 PRD
-  - tc-prd-splitter: 阶段一，拆分 PRD 为 PRD精简 + 多份 Spec
-  - tc-generator-ary: 阶段二，基于 Spec 生成测试用例
-  - tc-md-to-excel: 阶段三，将 Markdown 用例转换为 Excel
+  不适用于已有 Spec 且只需生成用例的场景（直接用 test-case-generator）。
 ---
 
-# TC Pipeline
+# Tester Pipeline
 
 测试用例全流程调度器。不执行具体业务逻辑，只负责判断输入类型、调度子技能、在确认点暂停收集用户反馈、传递阶段产物。
+
+相关技能：`test-devdoc-to-prd`、`test-prd-splitter`、`test-case-generator`、`test-case-md-to-excel`。
 
 ## 核心原则
 
@@ -29,10 +26,10 @@ related_skills:
 
 | 场景 | 直接调用 |
 |------|---------|
-| 已有结构化 PRD，只需要拆分 | `prd-splitter` |
-| 已有 PRD精简 + Spec，只需要生成用例 | `TC-generator-ary` |
-| 已有测试用例 Markdown，只需要转 Excel | `TC-md-to-excel` |
-| 只有开发设计文档，只需要翻译成 PRD | `devDoc-to-test-prd` |
+| 已有结构化 PRD，只需要拆分 | `test-prd-splitter` |
+| 已有 PRD精简 + Spec，只需要生成用例 | `test-case-generator` |
+| 已有测试用例 Markdown，只需要转 Excel | `test-case-md-to-excel` |
+| 只有开发设计文档，只需要翻译成 PRD | `test-devdoc-to-prd` |
 
 以下场景**需要**本调度器：
 
@@ -44,7 +41,7 @@ related_skills:
 
 ---
 
-## 阶段零：翻译（devDoc-to-test-prd）
+## 阶段零：翻译（test-devdoc-to-prd）
 
 ### 触发条件
 
@@ -58,7 +55,7 @@ related_skills:
 
 ### 执行
 
-调用 `devDoc-to-test-prd` 技能，传入原始设计文档路径。
+调用 `test-devdoc-to-prd` 技能，传入原始设计文档路径。
 
 ### 产出
 
@@ -87,7 +84,7 @@ related_skills:
 - 推断有误：📌1→{修正内容}
 ```
 
-用户回复后，按 `devDoc-to-test-prd` Phase 6 的规则更新文档并定稿。定稿后进入阶段一。
+用户回复后，按 `test-devdoc-to-prd` Phase 6 的规则更新文档并定稿。定稿后进入阶段一。
 
 ### 跳过条件
 
@@ -95,7 +92,7 @@ related_skills:
 
 ---
 
-## 阶段一：拆分（prd-splitter）
+## 阶段一：拆分（test-prd-splitter）
 
 ### 触发条件
 
@@ -103,9 +100,9 @@ related_skills:
 
 ### 执行
 
-调用 `prd-splitter` 技能，传入：
+调用 `test-prd-splitter` 技能，传入：
 - 结构化 PRD 路径
-- 原始设计文档路径（如果有，prd-splitter 会从中提取技术细节）
+- 原始设计文档路径（如果有，test-prd-splitter 会从中提取技术细节）
 
 ### 产出
 
@@ -131,7 +128,7 @@ PRD精简中的待确认事项：
 
 ### 回写：同步确认结果到 Spec
 
-用户确认后，**由本调度器执行回写**（不交给 TC-generator-ary）：
+用户确认后，**由本调度器执行回写**（不交给 `test-case-generator`）：
 
 1. 读取 PRD 精简的"待确认事项"表格，提取每项的确认结果
 2. 读取 PRD 精简的 `specs` frontmatter，获取 Spec 清单
@@ -149,7 +146,7 @@ PRD精简中的待确认事项：
 
 ### 阶段二前置门禁：禁止绕过 Spec 回写
 
-进入阶段二前，本调度器必须执行以下门禁检查。**任一项不满足时，禁止调用 `TC-generator-ary`，必须先完成回写或暂停让用户确认。**
+进入阶段二前，本调度器必须执行以下门禁检查。**任一项不满足时，禁止调用 `test-case-generator`，必须先完成回写或暂停让用户确认。**
 
 1. PRD 精简中所有待确认事项均已有明确确认结果，不能仅因为用户回复"已确认"就跳过逐项读取。
 2. PRD 精简的确认结果已经同步到对应 Spec；测试用例只能基于回写后的 Spec 生成，不能直接基于 PRD 精简中的确认表推导。
@@ -160,14 +157,14 @@ PRD精简中的待确认事项：
    - `若不支持`
    - `若现仅`
 4. 如果 PRD 精简中仍保留"待确认事项"章节但每项确认结果均为"已确认"，允许保留该章节作为确认记录；但 Spec 中不得保留未闭环标记。
-5. 将门禁结果作为阶段二调用说明的一部分传递给 `TC-generator-ary`：
+5. 将门禁结果作为阶段二调用说明的一部分传递给 `test-case-generator`：
    - `Spec 已按 PRD 精简确认结果回写完毕`
    - `已检查所有 Spec 无未闭环标记`
    - `跳过 Step 0.1 的确认与同步，直接从 Step 0.2 读取汇总开始`
 
 ---
 
-## 阶段二：生成用例（TC-generator-ary）
+## 阶段二：生成用例（test-case-generator）
 
 ### 触发条件
 
@@ -175,9 +172,9 @@ PRD精简中的待确认事项：
 
 ### 执行
 
-调用 `TC-generator-ary` 技能，传入 PRD 精简路径。
+调用 `test-case-generator` 技能，传入 PRD 精简路径。
 
-**注意**：由于本调度器已在阶段一确认点完成了确认结果到 Spec 的同步，TC-generator-ary 的 Step 0.1.2（检查待确认状态）和 0.1.3（同步确认结果到 Spec）应跳过。在传入参数时告知："Spec 已同步完毕，跳过 Step 0.1 的确认与同步，直接从 Step 0.2 读取汇总开始。"
+**注意**：由于本调度器已在阶段一确认点完成了确认结果到 Spec 的同步，`test-case-generator` 的 Step 0.1.2（检查待确认状态）和 0.1.3（同步确认结果到 Spec）应跳过。在传入参数时告知："Spec 已同步完毕，跳过 Step 0.1 的确认与同步，直接从 Step 0.2 读取汇总开始。"
 
 **禁止行为**：
 - 禁止在 PRD 精简已确认但 Spec 未回写时直接生成测试用例。
@@ -186,11 +183,11 @@ PRD精简中的待确认事项：
 
 ### 产出
 
-- 测试用例 Markdown 文件（由 TC-generator-ary 的输出规则决定路径和数量）
+- 测试用例 Markdown 文件（由 `test-case-generator` 的输出规则决定路径和数量）
 
 ---
 
-## 阶段三：转 Excel（TC-md-to-excel）
+## 阶段三：转 Excel（test-case-md-to-excel）
 
 ### 触发条件
 
@@ -198,7 +195,7 @@ PRD精简中的待确认事项：
 
 ### 执行
 
-调用 `TC-md-to-excel` 技能，传入阶段二产出的 Markdown 文件路径。
+调用 `test-case-md-to-excel` 技能，传入阶段二产出的 Markdown 文件路径。
 
 ### 产出
 

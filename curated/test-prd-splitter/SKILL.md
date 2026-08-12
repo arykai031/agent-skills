@@ -1,9 +1,9 @@
 ---
-name: prd-splitter
+name: test-prd-splitter
 description: 拆分prd
 ---
 
-# PRD Splitter
+# Test PRD Splitter
 
 接收一份完整 PRD，将其拆分为两份文档：
 - **PRD精简**：保留"为什么做、做什么、谁来决策"的对齐层，面向团队
@@ -11,7 +11,7 @@ description: 拆分prd
 
 ## 前置条件：输入材料准备
 
-prd-splitter 的输入是结构化的 PRD 文档。如果输入是**原始开发设计文档**（纯技术视角，含类名/代码逻辑/SQL等），必须先经过 `devDoc-to-test-prd` 技能翻译为测试视角的 PRD。
+test-prd-splitter 的输入是结构化的 PRD 文档。如果输入是**原始开发设计文档**（纯技术视角，含类名/代码逻辑/SQL等），必须先经过 `test-devdoc-to-prd` 技能翻译为测试视角的 PRD。
 
 **翻译前后对比**（以 WMS 出库订单波次分配为例）：
 
@@ -23,10 +23,10 @@ prd-splitter 的输入是结构化的 PRD 文档。如果输入是**原始开发
 
 **流程**：
 ```
-原始设计文档 → devDoc-to-test-prd → 结构化PRD (含🚧/📌标记) → 用户确认🚧缺口 → 定稿PRD → prd-splitter
+原始设计文档 → test-devdoc-to-prd → 结构化PRD (含🚧/📌标记) → 用户确认🚧缺口 → 定稿PRD → test-prd-splitter
 ```
 
-如果输入已经是结构化 PRD（如你们手动整理的 `prd-出库订单波次分配异步进度条.md`），跳过 devDoc-to-test-prd，直接进入 prd-splitter。
+如果输入已经是结构化 PRD（如你们手动整理的 `prd-出库订单波次分配异步进度条.md`），跳过 `test-devdoc-to-prd`，直接进入 `test-prd-splitter`。
 
 ## 核心原则
 
@@ -320,7 +320,7 @@ PRD 里"好看一点""功能完整"这类描述，在 Spec 里必须转化为可
 - 每个"待确认"是否都有对应的负责人？（没有就写"待指定"）
 - "不做什么"是否有覆盖所有容易被误解为"应该有"的功能？
 - 关键决策是否都有记录原因，而不只是结论？
-- **待确认事项表格是否位于 PRD 精简中**：确认结果只写入 PRD 精简，不写入 Spec。Spec 中的同步由下游技能（TC-generator-ary）在运行时自动完成
+- **待确认事项表格是否位于 PRD 精简中**：确认结果只写入 PRD 精简，不写入 Spec。Spec 中的同步由下游技能（`test-case-generator`）在运行时自动完成
 
 ### Spec检查（通用）
 
@@ -355,7 +355,7 @@ specs/[功能名称]-[需求点].md  ← 面向 AI 执行
 
 ### PRD精简的 Spec 清单（frontmatter）
 
-PRD精简必须在其 frontmatter 中记录所有拆出的 Spec 文件路径。这是下游技能（如 TC-generator-ary）检索前置成果的唯一入口，替代手工扫描 Spec 目录。
+PRD精简必须在其 frontmatter 中记录所有拆出的 Spec 文件路径。这是下游技能（如 `test-case-generator`）检索前置成果的唯一入口，替代手工扫描 Spec 目录。
 
 **格式**：在 PRD精简的 YAML frontmatter 中增加 `specs` 字段：
 

@@ -6,19 +6,22 @@ tc_md_to_excel.py - Markdown 测试用例批量转 Excel 工具
 2. 将所有测试用例合并到一个 Excel 文件中
 3. 按模块分组，自动生成编号（格式：TC-<模块拼音首字母>-序号）
 
-Markdown 格式规范（详见 assets/case_template.md）：
+首选 Markdown 格式（详见 assets/case_template.md）：
   # 所属模块
   ## 功能点
   ### 用例标题
+  - [ ] 1️⃣  前置条件 | 操作步骤 | 预期结果
+
+兼容旧格式：
   - [Px] 前置条件 | 操作步骤 | 预期结果 | 执行结果
 
 用法：
-    python tc_md_to_excel.py [测试用例目录] [--prefix 前缀] [--output 输出路径]
+    python3 tc_md_to_excel.py [测试用例目录] [--prefix 前缀] [--output 输出路径]
 
 示例：
-    python tc_md_to_excel.py ./testcases
-    python tc_md_to_excel.py ./testcases --prefix TC
-    python tc_md_to_excel.py ./testcases --output ./result/用例.xlsx
+    python3 tc_md_to_excel.py ./testcases
+    python3 tc_md_to_excel.py ./testcases --prefix TC
+    python3 tc_md_to_excel.py ./testcases --output ./result/用例.xlsx
 """
 
 import argparse
@@ -40,14 +43,14 @@ try:
     from openpyxl.utils import get_column_letter
 except ImportError:
     print("错误：需要安装 openpyxl 库")
-    print("请运行：pip install openpyxl")
+    print("请运行：python3 -m pip install openpyxl")
     sys.exit(1)
 
 try:
     from pypinyin import lazy_pinyin
 except ImportError:
     print("错误：需要安装 pypinyin 库")
-    print("请运行：pip install pypinyin")
+    print("请运行：python3 -m pip install pypinyin")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------
@@ -84,8 +87,17 @@ PRIORITY_COLORS = {
     "P3": "95A5A6",
 }
 
+TASK_PRIORITY_MAP = {
+    "1️⃣": "P0",
+    "2️⃣": "P1",
+    "3️⃣": "P2",
+    "4️⃣": "P3",
+}
+
 # 测试结果 -> 背景色
 RESULT_COLORS = {
+    "未执行":   "D9E1F2",
+    "已执行":   "5B9BD5",
     "测试通过": "6BCB77",
     "未通过":   "FF6B6B",
 }
@@ -125,7 +137,7 @@ class TestCase:
     steps: str = ""           # 操作步骤
     expected: str = ""        # 预期结果
     test_result: str = ""     # 执行结果
-    source_file: str = ""     # 来源文件名（调试用） 
+    source_file: str = ""     # 来源文件名（调试用）
     case_no: str = ""         # 生成的用例编号
 
 
@@ -252,7 +264,7 @@ class MarkdownParser:
     解析符合模板格式的 Markdown 测试用例文件。
 
     状态机逐行解析，维护 module / feature / title 上下文，
-    遇到 `- [Px]` 开头的行时提取一条完整用例。
+    遇到 Obsidian 三段式或旧版 `[Px]` 四段式行时提取一条完整用例。
     """
 
     # 头部需要跳过的行前缀
@@ -323,17 +335,62 @@ class MarkdownParser:
 
     def _parse_case_line(self, line: str) -> Optional[TestCase]:
         """
-        解析用例行：`- [Px] 前置条件 | 操作步骤 | 预期结果 | 执行结果`
+        解析首选格式与兼容格式：
+        - `- [ ] 1️⃣ 前置条件 | 操作步骤 | 预期结果`
+        - `- [Px] 前置条件 | 操作步骤 | 预期结果 | 执行结果`
 
         返回 TestCase 或 None（非用例行）。
         """
         stripped = line.strip()
 
-        # 必须以 `- [P` 开头
-        if not stripped.startswith("- [P"):
-            return None
+        task_match = re.match(
+            r"-\s*\[([ xX])\]\s*(1️⃣|2️⃣|3️⃣|4️⃣)\s+(.+)",
+            stripped,
+            re.DOTALL,
+        )
+        if task_match:
+            checked, priority_icon, body = task_match.groups()
+            parts = [part.strip() for part in body.split("|", 2)]
+            while len(parts) < 3:
+                parts.append("")
+            precondition, steps, expected = parts
 
-        # 提取优先级
+            return TestCase(
+                module=self.current_module,
+                feature=self.current_feature,
+                priority=TASK_PRIORITY_MAP[priority_icon],
+                title=self.current_title,
+                precondition=semicolon_to_newline(precondition),
+                steps=semicolon_to_newline(steps),
+                expected=semicolon_to_newline(expected),
+                test_result="已执行" if checked.lower() == "x" else "未执行",
+                source_file=self.source_file,
+            )
+
+        legacy_task_match = re.match(
+            r"-\s*\[([ xX])\]\s*\[(P[0-3])\](?:\[[^\]]+\])*\s*(.+)",
+            stripped,
+            re.DOTALL,
+        )
+        if legacy_task_match:
+            checked, priority, body = legacy_task_match.groups()
+            parts = [part.strip() for part in body.split("|", 2)]
+            while len(parts) < 3:
+                parts.append("")
+            precondition, steps, expected = parts
+
+            return TestCase(
+                module=self.current_module,
+                feature=self.current_feature,
+                priority=priority,
+                title=self.current_title,
+                precondition=semicolon_to_newline(precondition),
+                steps=semicolon_to_newline(steps),
+                expected=semicolon_to_newline(expected),
+                test_result="已执行" if checked.lower() == "x" else "未执行",
+                source_file=self.source_file,
+            )
+
         priority_match = re.match(r"-\s*\[(P\d)\]\s*(.+)", stripped, re.DOTALL)
         if not priority_match:
             return None
@@ -341,11 +398,7 @@ class MarkdownParser:
         priority = priority_match.group(1)
         body = priority_match.group(2).strip()
 
-        # 按 | 分割，最多 4 段
-        parts = [p.strip() for p in body.split("|")]
-        if len(parts) > 4:
-            # 合并多余部分到第 4 段
-            parts = parts[:3] + ["|".join(parts[3:])]
+        parts = [p.strip() for p in body.split("|", 3)]
 
         # 补齐到 4 段
         while len(parts) < 4:
@@ -642,9 +695,9 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例：
-  python tc_md_to_excel.py ./testcases
-  python tc_md_to_excel.py ./testcases --prefix TC
-  python tc_md_to_excel.py ./testcases --output ./result.xlsx
+  python3 tc_md_to_excel.py ./testcases
+  python3 tc_md_to_excel.py ./testcases --prefix TC
+  python3 tc_md_to_excel.py ./testcases --output ./result.xlsx
         """,
     )
     parser.add_argument(
