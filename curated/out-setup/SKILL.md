@@ -1,9 +1,9 @@
 ---
-name: a-work-collection
-description: 建立可复用的收口目录骨架（a_work）——交付物唯一出口。含 AGENTS.md 行为规范（回写策略/索引格式/命名规范/禁止事项）、INDEX.md 双链索引、目录用途划分。当用户提到"收口目录""交付物目录""outputs 重构""目录骨架""目录管理方案"时使用。
+name: out-setup
+description: 建立可复用的收口目录骨架（0out）——交付物唯一出口。含 AGENTS.md 行为规范（回写策略/索引格式/命名规范/禁止事项）、INDEX.md 双链索引、目录用途划分。当用户提到"收口目录""交付物目录""outputs 重构""目录骨架""目录管理方案"时使用。
 ---
 
-# 收口目录骨架（a_work）
+# 收口目录骨架（0out）
 
 ## 触发条件
 
@@ -13,14 +13,14 @@ description: 建立可复用的收口目录骨架（a_work）——交付物唯�
 
 ## 核心原则
 
-1. **分层看职责边界，不看目录数量**：配置层（../.config 等工具自管）、项目层（../projects，git 备份）、交付层（a_work，唯一出口）、规范层（SOUL.md 管行为）
+1. **分层看职责边界，不看目录数量**：配置层（../.config 等工具自管）、项目层（../projects，git 备份）、交付层（0out，唯一出口）、规范层（SOUL.md 管行为）
 2. **目录价值在边界不在数量**：不需要用户目录级索引、不需要"超级目录"
 3. **各走各路**：配置靠工具恢复、仓库靠 git push、交付物靠 tar+INDEX、行为靠 SOUL.md
 
 ## 目录结构
 
 ```
-~/a_work/              # 交付物唯一出口（排序置顶：a 开头）
+~/0out/              # 交付物唯一出口（排序置顶：0 开头）
 ├── AGENTS.md          # 行为规范：回写策略/索引格式/命名规范/禁止事项
 ├── INDEX.md           # 双链索引（Obsidian 格式）
 ├── research/          # 调研报告、信息收集 —— 长期保留
@@ -30,11 +30,11 @@ description: 建立可复用的收口目录骨架（a_work）——交付物唯�
 └── temp/              # 临时文件 —— 每周清理
 ```
 
-**配套目录**：git 仓库放 `../projects/<repo>/`（不塞进 a_work），项目级 AGENTS.md 放各仓库内。
+**配套目录**：git 仓库放 `../projects/<repo>/`（不塞进 0out），项目级 AGENTS.md 放各仓库内。
 
 ## 落地步骤
 
-1. 建目录：`mkdir -p ~/a_work/{research,docs,scripts,data,temp}`
+1. 建目录：`mkdir -p ~/0out/{research,docs,scripts,data,temp}`
 2. 写入 AGENTS.md（模板见 `templates/AGENTS.md`）
 3. 写入 INDEX.md（模板见 `templates/INDEX.md`）
 4. 迁移现有交付物：按类型归类到对应子目录，核对实际文件后登记 INDEX
@@ -52,5 +52,5 @@ description: 建立可复用的收口目录骨架（a_work）——交付物唯�
 
 - 改名/迁移前必须检查硬编码引用（备份脚本、cron、skill 常写死旧路径），漏改会断链路
 - 不要物理删除已归档文件，用状态标记
-- 不要在 a_work 里放 git 仓库（→ ../projects/）、密钥（→ Bitwarden）
+- 不要在 0out 里放 git 仓库（→ ../projects/）、密钥（→ Bitwarden）
 - 只写文件不登记 INDEX = 没写，每次写入必须同步更新索引

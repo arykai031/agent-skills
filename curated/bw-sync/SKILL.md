@@ -60,21 +60,21 @@ command -v bws 2>/dev/null || ls ~/.local/bin/bws 2>/dev/null || echo "bws CLI �
 
 ```bash
 cd skills/bw-sync/scripts
-bash install.sh --token "<BWS_ACCESS_TOKEN>" --deploy-dir "$HOME/a_work"
+bash install.sh --token "<BWS_ACCESS_TOKEN>" --deploy-dir "$HOME/0out"
 ```
 
-install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置文件。**安装目标是用户级收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`），不装系统级。
+install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置文件。**安装目标是用户级收口目录**（脚本 → `<0out>/scripts/bw-sync`，配置 → `<0out>/configs/bw-sync.yaml`），不装系统级。
 
-- 收口目录（通用 `a_work` 概念）自动探测：`$HOME/a_work` → `$(pwd)/a_work`，也可显式指定：`bash install.sh --deploy-dir "$HOME/a_work"`
+- 收口目录（通用 `0out` 概念）自动探测：`$HOME/0out` → `$(pwd)/0out`，也可显式指定：`bash install.sh --deploy-dir "$HOME/0out"`
 - 未探测到收口目录时，兜底安装到标准用户级：`$HOME/.local/bin` + `$HOME/.config/bw-sync`
 - 若用户已提供 token：`--token` 传入
 - 若用户还没拿到 token：先运行 `bash install.sh`（跳过 token），**明确告诉用户下一步去 Bitwarden 控制台生成 token，拿到后补跑** `bash install.sh --token "<新token>"`
 
-> 💡 **工作链**：技能部署后，日常同步操作直接使用收口目录中的脚本（`<a_work>/scripts/bw-sync`）与配置（`<a_work>/configs/bw-sync.yaml`），收口目录是实际使用版本。
+> 💡 **工作链**：技能部署后，日常同步操作直接使用收口目录中的脚本（`<0out>/scripts/bw-sync`）与配置（`<0out>/configs/bw-sync.yaml`），收口目录是实际使用版本。
 
 ### 第 2 步：生成配置文件
 
-向用户确认以下信息后，编辑配置 `<a_work>/configs/bw-sync.yaml`。
+向用户确认以下信息后，编辑配置 `<0out>/configs/bw-sync.yaml`。
 
 **用户只需回答 3 个问题**（`output.mode` 等由 agent 根据目标推断，不要求用户懂技术）：
 
@@ -128,10 +128,10 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 
 ```bash
 # 预览（不实际写入）—— 使用收口目录脚本 + 配置
-<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml --dry-run
+<0out>/scripts/bw-sync -c <0out>/configs/bw-sync.yaml --dry-run
 
 # 确认无误后执行
-<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml
+<0out>/scripts/bw-sync -c <0out>/configs/bw-sync.yaml
 ```
 
 **验证通过的标准**：dry-run 输出中每个 MAP 密钥都取到了值（`成功 N，失败 0`）。若有失败，检查：
@@ -147,11 +147,11 @@ install.sh 会自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 t
 
 | 环境 | 方式 | 命令/配置 |
 |------|------|----------|
-| **手动按需** | 本地需要新密钥时，人工在 Bitwarden 添加后手动执行 | `<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml` |
-| Supervisor 容器 | 启动前同步 | `command=/bin/sh -c "<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q && exec my-app"` |
-| Cron | 每 3 天凌晨 4 点 | `0 4 */3 * * <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q` |
+| **手动按需** | 本地需要新密钥时，人工在 Bitwarden 添加后手动执行 | `<0out>/scripts/bw-sync -c <0out>/configs/bw-sync.yaml` |
+| Supervisor 容器 | 启动前同步 | `command=/bin/sh -c "<0out>/scripts/bw-sync -c <0out>/configs/bw-sync.yaml -q && exec my-app"` |
+| Cron | 每 3 天凌晨 4 点 | `0 4 */3 * * <0out>/scripts/bw-sync -c <0out>/configs/bw-sync.yaml -q` |
 | Systemd Timer | 低频兜底 | `OnBootSec=30s` + `OnUnitActiveSec=3d`（每 3 天） |
-| QwenPaw Cron | 每 3 天凌晨 4 点（北京时间） | `qwenpaw cron create --agent-id <id> --type agent --cron "0 4 */3 * *" --timezone "Asia/Shanghai" --text "请执行 Bitwarden 密钥同步：运行 <a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml -q" --silent` |
+| QwenPaw Cron | 每 3 天凌晨 4 点（北京时间） | `qwenpaw cron create --agent-id <id> --type agent --cron "0 4 */3 * *" --timezone "Asia/Shanghai" --text "请执行 Bitwarden 密钥同步：运行 <0out>/scripts/bw-sync -c <0out>/configs/bw-sync.yaml -q" --silent` |
 
 > 若用户不需要定时，可跳过此步，手动执行即可。
 

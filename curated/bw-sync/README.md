@@ -82,9 +82,9 @@ cd skills/bw-sync/scripts
 bash install.sh --token "<BWS_ACCESS_TOKEN>"
 ```
 
-install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置文件。**安装目标是用户级收口目录**（脚本 → `<a_work>/scripts/bw-sync`，配置 → `<a_work>/configs/bw-sync.yaml`），不装系统级。
+install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 token 文件 `~/.bw/env`（chmod 600）→ 生成配置文件。**安装目标是用户级收口目录**（脚本 → `<0out>/scripts/bw-sync`，配置 → `<0out>/configs/bw-sync.yaml`），不装系统级。
 
-- 收口目录（通用 `a_work` 概念）自动探测：`$HOME/a_work` → `$(pwd)/a_work`，也可显式指定 `--deploy-dir`
+- 收口目录（通用 `0out` 概念）自动探测：`$HOME/0out` → `$(pwd)/0out`，也可显式指定 `--deploy-dir`
 - 未探测到收口目录时，兜底安装到标准用户级：`$HOME/.local/bin` + `$HOME/.config/bw-sync`
 
 ### 手动安装（可选，不用 install.sh 时）
@@ -93,13 +93,13 @@ install.sh 自动完成：装/查 bws CLI → 装 bw-sync 主脚本 → 写 toke
 # 1. 安装 bws CLI
 curl -fsSL https://bws.bitwarden.com/install | sh
 
-# 2. 下载同步脚本到用户级目录（a_work 收口目录或 ~/.local/bin）
-mkdir -p "$HOME/a_work/scripts"
-cp bw-sync "$HOME/a_work/scripts/bw-sync"
-chmod +x "$HOME/a_work/scripts/bw-sync"
+# 2. 下载同步脚本到用户级目录（0out 收口目录或 ~/.local/bin）
+mkdir -p "$HOME/0out/scripts"
+cp bw-sync "$HOME/0out/scripts/bw-sync"
+chmod +x "$HOME/0out/scripts/bw-sync"
 
 # 3. 验证
-"$HOME/a_work/scripts/bw-sync" --version
+"$HOME/0out/scripts/bw-sync" --version
 ```
 
 ### 初始化（手动方式，install.sh 已自动完成）
@@ -245,13 +245,13 @@ Bitwarden 中的 **Secret Key 直接作为环境变量名**，同步所有密钥
 
 ## 触发方式
 
-> 📁 **用户级收口目录工作链**：install.sh 安装目标即用户级收口目录（脚本 `<a_work>/scripts/bw-sync` + 配置 `<a_work>/configs/bw-sync.yaml`）。**日常同步/定时任务统一使用收口目录路径**；未部署收口目录时使用兜底用户级路径（`$HOME/.local/bin/bw-sync` + `$HOME/.config/bw-sync/bw-sync.yaml`）。以下示例均可用 `<a_work>/scripts/bw-sync -c <a_work>/configs/bw-sync.yaml` 替换。
+> 📁 **用户级收口目录工作链**：install.sh 安装目标即用户级收口目录（脚本 `<0out>/scripts/bw-sync` + 配置 `<0out>/configs/bw-sync.yaml`）。**日常同步/定时任务统一使用收口目录路径**；未部署收口目录时使用兜底用户级路径（`$HOME/.local/bin/bw-sync` + `$HOME/.config/bw-sync/bw-sync.yaml`）。以下示例均可用 `<0out>/scripts/bw-sync -c <0out>/configs/bw-sync.yaml` 替换。
 
 ### 方式 A：Supervisor Wrapper（容器环境，当前方案）
 
 ```ini
 [program:sync-bw]
-command=<a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
+command=<0out>/scripts/bw-sync --config <0out>/configs/bw-sync.yaml -q
 autostart=true
 autorestart=false
 startsecs=0
@@ -267,7 +267,7 @@ priority=100          # 大于 sync-bw 的 priority，保证后启动
 或合并为一条命令：
 
 ```
-command=/bin/sh -c "<a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q && exec my-app"
+command=/bin/sh -c "<0out>/scripts/bw-sync --config <0out>/configs/bw-sync.yaml -q && exec my-app"
 ```
 
 ### 方式 B：系统 Cron（服务器环境）
@@ -275,11 +275,11 @@ command=/bin/sh -c "<a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.y
 ```bash
 # crontab -e
 # 每 5 分钟同步一次（比默认 30 分钟更及时）
-*/5 * * * * <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
+*/5 * * * * <0out>/scripts/bw-sync --config <0out>/configs/bw-sync.yaml -q
 
 # 或系统级 cron（root）
 cat > /etc/cron.d/bw-sync << 'EOF'
-*/5 * * * * root <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
+*/5 * * * * root <0out>/scripts/bw-sync --config <0out>/configs/bw-sync.yaml -q
 EOF
 ```
 
@@ -294,7 +294,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=<a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
+ExecStart=<0out>/scripts/bw-sync --config <0out>/configs/bw-sync.yaml -q
 User=root
 
 [Install]
@@ -332,7 +332,7 @@ qwenpaw cron create \
   --channel console \
   --target-user "default" \
   --target-session "cron-bw-sync" \
-  --text "请执行 Bitwarden 密钥同步：运行 <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q" \
+  --text "请执行 Bitwarden 密钥同步：运行 <0out>/scripts/bw-sync --config <0out>/configs/bw-sync.yaml -q" \
   --timeout 30 \
   --silent
 ```
@@ -343,7 +343,7 @@ qwenpaw cron create \
 
 ### 场景 1：QwenPaw 用（当前方案）
 
-配置文件 `<a_work>/configs/bw-sync.yaml`（QwenPaw 用 env_set 模式）：
+配置文件 `<0out>/configs/bw-sync.yaml`（QwenPaw 用 env_set 模式）：
 
 ```yaml
 bitwarden:
@@ -372,7 +372,7 @@ Supervisor wrapper 启动：
 #!/bin/bash
 # 启动 wrapper（系统级基础设施，用绝对路径）
 source ~/.bw/env 2>/dev/null
-timeout 15 <a_work>/scripts/bw-sync --config <a_work>/configs/bw-sync.yaml -q
+timeout 15 <0out>/scripts/bw-sync --config <0out>/configs/bw-sync.yaml -q
 exec /app/venv/bin/qwenpaw app --host 0.0.0.0 --port 8088
 ```
 

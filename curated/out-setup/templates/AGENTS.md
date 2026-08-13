@@ -9,7 +9,7 @@ tags: [doc/agentsmd]
 
 ---
 
-## a_work 收口目录规范
+## 0out 收口目录规范
 
 本目录是交付物的唯一出口。所有生成的文件按类型收口到对应子目录，并在 INDEX.md 登记。本文件是 agent 在此目录内工作的行为规范。
 
@@ -47,8 +47,8 @@ tags: [doc/agentsmd]
 
 ## 禁止事项
 
-- 禁止把 git 仓库放进 a_work（仓库统一放 `~/projects/`）
-- 禁止把配置、密钥等敏感文件放进 a_work（凭据走 Bitwarden）
+- 禁止把 git 仓库放进 0out（仓库统一放 `~/projects/`）
+- 禁止把配置、密钥等敏感文件放进 0out（凭据走 Bitwarden）
 - 禁止覆盖已有交付物而不更新 INDEX.md
 - 禁止在 temp/ 存放重要文件（每周清理，丢了自己负责）
 - 禁止物理删除已归档文件（用状态标记，不用删除）

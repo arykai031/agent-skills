@@ -4,13 +4,13 @@
 #
 # 功能：自动完成以下步骤
 #   1. 安装/检查 bws CLI（Bitwarden Secrets Manager 命令行工具）
-#   2. 安装 bw-sync 主脚本到用户级目录（默认 a_work 收口目录）
+#   2. 安装 bw-sync 主脚本到用户级目录（默认 0out 收口目录）
 #   3. 初始化 Token 文件 ~/.bw/env（chmod 600）
 #   4. 生成配置文件（与脚本同一收口目录）
 #
 # 安装目标（按优先级）：
 #   1. --deploy-dir <dir>    显式指定收口目录（脚本→<dir>/scripts/，配置→<dir>/configs/）
-#   2. 自动探测 $HOME/a_work → $(pwd)/a_work（收口目录，存在即用）
+#   2. 自动探测 $HOME/0out → $(pwd)/0out（收口目录，存在即用）
 #   3. 兜底用户级 $HOME/.local/bin + $HOME/.config/bw-sync
 #
 # 用法:
@@ -24,7 +24,7 @@
 #   bash install.sh
 #
 #   # 指定收口目录（推荐，脚本→<dir>/scripts/，配置→<dir>/configs/）
-#   bash install.sh --deploy-dir "$HOME/a_work"
+#   bash install.sh --deploy-dir "$HOME/0out"
 # ============================================================
 set -euo pipefail
 
@@ -60,8 +60,8 @@ if [ -z "$BIN_DIR" ] && [ -z "$CONFIG_DIR" ]; then
         BIN_DIR="$DEPLOY_DIR/scripts"
         CONFIG_DIR="$DEPLOY_DIR/configs"
     else
-        # 自动探测收口目录（通用 a_work 概念）
-        for candidate in "$HOME/a_work" "$(pwd)/a_work"; do
+        # 自动探测收口目录（通用 0out 概念）
+        for candidate in "$HOME/0out" "$(pwd)/0out"; do
             if [ -d "$candidate" ]; then
                 DEPLOY_DIR="$candidate"
                 BIN_DIR="$candidate/scripts"
