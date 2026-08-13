@@ -1,14 +1,8 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-08-13T00:00:00Z",
+  "updated": "2026-08-13T03:21:57Z",
   "skills": [
-    {
-      "name": "out-setup",
-      "namespace": "curated",
-      "description": "建立可复用的收口目录骨架（0out）——交付物唯一出口。含 AGENTS.md 行为规范（回写策略/索引格式/命名规范/禁止事项）、INDEX.md 双链索引、目录用途划分。当用户提到\"收口目录\"\"交付物目录\"\"outputs 重构\"\"目录骨架\"\"目录管理方案\"时使用。",
-      "path": "curated/out-setup/"
-    },
     {
       "name": "bw-sync",
       "namespace": "curated",
@@ -20,6 +14,12 @@
       "namespace": "curated",
       "description": "Use when the user requests diagrams, flowcharts, architecture diagrams, ER diagrams, UML / sequence / class diagrams, SysML / MBSE diagrams (block definition, internal block, requirement, parametric), BPMN business process diagrams, swimlane / cross-functional flowcharts, network topology, cloud arc",
       "path": "curated/drawio-skill/"
+    },
+    {
+      "name": "out-setup",
+      "namespace": "curated",
+      "description": "建立可复用的收口目录骨架（0out）——交付物唯一出口。含 AGENTS.md 行为规范（回写策略/索引格式/命名规范/禁止事项）、INDEX.md 双链索引、目录用途划分。当用户提到\"收口目录\"\"交付物目录\"\"outputs 重构\"\"目录骨架\"\"目录管理方案\"时使用。",
+      "path": "curated/out-setup/"
     },
     {
       "name": "test-case-generator",
