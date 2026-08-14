@@ -22,8 +22,10 @@
 | 技能 | 命名空间 | 说明 |
 |------|---------|------|
 | agent-browser | community | Rust 浏览器自动化 CLI |
+| anysearch | @user_51511428 | 实时网页搜索、垂直领域搜索与 URL 内容提取 |
 | github | @steipete | GitHub 集成（Issue/PR/CI） |
 | ima-skill | community | — |
 | n8n-workflow-automation | community | n8n 工作流自动化设计 |
 | obsidian | @steipete | Obsidian vault 自动化 |
 | runesleo-systematic-debugging | community | 四阶段系统化调试框架 |
+| self-improving-agent | community | 记录错误、纠正与经验并沉淀为长期改进 |

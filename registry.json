@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "agent-skills 技能注册表 — 机器可读索引",
-  "updated": "2026-08-14T05:43:22Z",
+  "updated": "2026-08-14T07:14:54Z",
   "skills": [
     {
       "name": "bit-secret-manager",
@@ -58,6 +58,12 @@
       "path": "community/agent-browser/"
     },
     {
+      "name": "anysearch",
+      "namespace": "community",
+      "description": "Real-time search engine supporting web search, vertical domain search, parallel batch search, and URL content extraction.",
+      "path": "community/anysearch/"
+    },
+    {
       "name": "github",
       "namespace": "community",
       "description": "GitHub集成工具，支持Issues管理、PR操作、CI运行监控、API查询。适用于代码审查、项目跟踪、自动化工作流。",
@@ -86,6 +92,12 @@
       "namespace": "community",
       "description": "Four-phase debugging framework that ensures root cause investigation before attempting fixes. Never jump to solutions.",
       "path": "community/runesleo-systematic-debugging/"
+    },
+    {
+      "name": "self-improving-agent",
+      "namespace": "community",
+      "description": "Captures learnings, errors, and corrections to enable continuous improvement. Use when: (1) A command or operation fails unexpectedly, (2) User corrects Claude ('No, that's wrong...', 'Actually...'), (3) User requests a capability that doesn't exist, (4) An external API or tool fails, (5) Claude rea",
+      "path": "community/self-improving-agent/"
     },
     {
       "name": "westock-data",

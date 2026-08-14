@@ -13,6 +13,12 @@
       "installed_at": "2026-07-30",
       "install_cmd": "skillhub install obsidian --namespace steipete"
     },
+    "@user_51511428/anysearch": {
+      "source": "skillhub",
+      "version": "2.1.0",
+      "installed_at": "2026-08-14",
+      "install_cmd": "skillhub install anysearch --namespace user_51511428"
+    },
     "agent-browser": {
       "source": "skillhub",
       "version": "0.2.0",
@@ -36,6 +42,12 @@
       "version": "3.0.0",
       "installed_at": "2026-07-30",
       "install_cmd": "skillhub install runesleo-systematic-debugging"
+    },
+    "self-improving-agent": {
+      "source": "skillhub",
+      "version": "3.0.5",
+      "installed_at": "2026-08-14",
+      "install_cmd": "skillhub install self-improving-agent"
     },
     "@tencent-adm/westock-data": {
       "source": "skillhub",
