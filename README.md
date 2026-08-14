@@ -24,8 +24,8 @@ git clone https://github.com/arykai031/agent-skills.git
 # 2. 查看技能清单
 cat SKILLS.md
 
-# 3. 安装某个技能到 QwenPaw workspace
-ln -s $(pwd)/curated/<skill-name> <workspace>/skills/
+# 3. 安装某个自研技能
+./scripts/deploy-curated-skill.sh install <skill-name> <workspace>/skills
 ```
 
 ## 技能来源说明
@@ -34,3 +34,10 @@ ln -s $(pwd)/curated/<skill-name> <workspace>/skills/
 |------|------|------|
 | 🏆 自研 | `curated/` | 你自己开发的技能，可版本控制、可发布到 SkillHub |
 | 📦 社区 | `community/` | 从 SkillHub 安装的技能副本，锁定版本防止上游变更 |
+
+`curated/` 是自研 Skill 的唯一可编辑来源。Workspace、Vault 和 Agent
+全局目录中的同名目录都是部署副本，不接受手工修改。检查副本是否漂移：
+
+```bash
+./scripts/deploy-curated-skill.sh check <skill-name> <workspace>/skills
+```
