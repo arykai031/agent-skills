@@ -1,0 +1,3 @@
+interface:
+  display_name: "Bit Secret Manager"
+  short_description: "Route credentials through runtime profiles"
