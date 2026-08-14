@@ -16,16 +16,20 @@ IDs, expected keys, and target environment names.
    metadata. The step is complete when every required variable has one mapping.
 2. Find an existing profile in
    `~/.config/bit-secret-manager/config.toml`. Keep the directory `0700` and the
-   configuration `0600`. If mappings are missing, stop execution and ask the
-   user to create or select the BWS Secret and supply only its ID and expected
-   key; then add the non-secret TOML mapping. The step is complete when one
-   profile covers the command atomically.
-3. Require `bit-secret-manager doctor` to pass. For first use or Token rotation,
-   have the human run `bit-secret-manager init` so entry is hidden. A trusted
-   local pipe may use `init --token-stdin`. Keep Machine Account Tokens out of
-   chat, argv, command output, logs, notes, and shell-sourceable files. If a
-   value is pasted in chat, do not repeat or persist it; stop and direct the
-   user to rotate it.
+   configuration `0600`. When the configuration is absent, do not create it by
+   hand: have the human run `bit-secret-manager init` and enter the non-secret
+   mappings in its first-use prompts. When a valid configuration exists but a
+   mapping is missing, stop execution and ask the user to create or select the
+   BWS Secret and approve adding only its ID, expected key, profile, and target
+   environment name. The step is complete when one profile covers the command
+   atomically.
+3. Require `bit-secret-manager doctor` to pass. Interactive `init` creates the
+   first configuration when absent; with an existing configuration it only
+   initializes or rotates the Token without rewriting mappings. A trusted local
+   pipe may use `init --token-stdin` only after a valid configuration exists.
+   Keep Machine Account Tokens out of chat, argv, command output, logs, notes,
+   and shell-sourceable files. If a value is pasted in chat, do not repeat or
+   persist it; stop and direct the user to rotate it.
 4. Execute an argv through the profile:
 
    ```bash
@@ -47,6 +51,8 @@ IDs, expected keys, and target environment names.
   BWS output, and Token material remain undisclosed.
 - The manager installs separately from this skill. Installation never installs
   `bws`, changes shell startup, or creates credentials.
+- The executable is `~/.local/bin/bit-secret-manager`; files under
+  `~/.local/lib/bit-secret-manager` are implementation files, not commands.
 
 ## GitHub
 
